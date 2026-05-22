@@ -1,0 +1,1749 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<title>SYD 2026 — Executive Dashboard</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=IBM+Plex+Sans+Thai:wght@400;500;600;700&family=JetBrains+Mono:wght@500;700;800&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+:root{
+  --ink:#0f0f0f; --ink-soft:#1f1f1f;
+  --paper:#fbfaf7; --paper-2:#f3f0e8; --paper-3:#ebe5d6;
+  --line:#d4c9a8; --line-strong:#a8956a;
+  --burgundy:#6b2737; --burgundy-dark:#4a1825; --burgundy-light:#8a3848;
+  --gold:#b8924a; --gold-light:#d4b876; --gold-dark:#8a6a32;
+  --champagne:#e8dcc0; --pearl:#f5ede0;
+  --green:#2d4a3a; --amber:#a87a3a; --red:#7a2832;
+  --muted:#5a5248;
+  --st-done:#2d4a3a; --st-doing:#6b2737; --st-wait:#b8924a;
+  --st-planning:#d4b876; --st-hold:#5a5248; --st-fail:#7a2832; --st-revise:#8a6a32;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{
+  background:var(--paper);color:var(--ink);
+  font-family:'Inter','IBM Plex Sans Thai',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+  font-weight:500;line-height:1.55;-webkit-font-smoothing:antialiased;
+  font-feature-settings:"ss01","ss02","cv11";
+}
+body{min-height:100vh;background-image:radial-gradient(circle at 15% 10%,rgba(184,146,74,0.05) 0%,transparent 45%),radial-gradient(circle at 85% 85%,rgba(107,39,55,0.04) 0%,transparent 50%)}
+
+.header{border-bottom:2px solid var(--line);padding:28px 56px;background:rgba(251,250,247,0.96);backdrop-filter:blur(10px);position:sticky;top:0;z-index:100}
+.header-inner{display:flex;justify-content:space-between;align-items:flex-end;max-width:1700px;margin:0 auto;gap:32px;flex-wrap:wrap}
+.brand{display:flex;align-items:baseline;gap:20px}
+.brand-mark{font-family:'Inter',sans-serif;font-weight:900;font-size:42px;letter-spacing:-0.02em;line-height:1;color:var(--burgundy)}
+.brand-mark .accent{color:var(--gold);font-weight:800}
+.brand-divider{width:1px;height:32px;background:var(--line-strong)}
+.brand-meta{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:0.12em;font-weight:700}
+.brand-meta div{margin-bottom:3px}
+.brand-meta strong{color:var(--burgundy);font-weight:800}
+.tabs{display:flex;gap:0;border:2px solid var(--line-strong);background:var(--pearl);flex-wrap:wrap}
+.tab{padding:14px 24px;font-family:'Inter',sans-serif;font-weight:700;font-size:13px;background:transparent;border:none;cursor:pointer;border-right:1px solid var(--line);color:var(--ink-soft);text-transform:uppercase;letter-spacing:0.08em;transition:all 0.25s ease;position:relative}
+.tab:last-child{border-right:none}
+.tab:hover{background:var(--champagne);color:var(--burgundy)}
+.tab.active{background:var(--burgundy);color:var(--paper)}
+.tab.active::after{content:"";position:absolute;bottom:-2px;left:0;right:0;height:3px;background:var(--gold)}
+
+.main{max-width:1700px;margin:0 auto;padding:48px 56px 96px}
+.page{display:none;animation:fadeIn 0.5s ease}
+.page.active{display:block}
+@keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+
+.page-title{margin-bottom:40px;padding-bottom:32px;border-bottom:2px solid var(--line)}
+.page-title h1{font-family:'Inter',sans-serif;font-weight:900;font-size:64px;line-height:1.05;letter-spacing:-0.04em;color:var(--ink)}
+.page-title h1 em{font-style:italic;color:var(--burgundy);font-weight:900}
+.page-title .eyebrow{font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--gold-dark);text-transform:uppercase;letter-spacing:0.22em;margin-bottom:16px;font-weight:800}
+.page-title .subtitle{font-family:'Inter',sans-serif;font-size:18px;color:var(--muted);margin-top:14px;font-weight:600}
+
+.filter-bar{display:flex;flex-wrap:wrap;gap:12px;padding:20px 24px;margin-bottom:36px;background:var(--pearl);border:2px solid var(--line);align-items:center}
+.filter-label{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--gold-dark);text-transform:uppercase;letter-spacing:0.15em;font-weight:800;margin-right:8px}
+.chip{padding:9px 18px;font-size:13px;font-weight:700;border:1.5px solid var(--line-strong);background:var(--paper);color:var(--ink-soft);cursor:pointer;transition:all 0.2s ease;font-family:'Inter',sans-serif;letter-spacing:0.02em}
+.chip:hover{background:var(--champagne);border-color:var(--gold)}
+.chip.active{background:var(--burgundy);color:var(--paper);border-color:var(--burgundy)}
+.chip-group{display:flex;flex-wrap:wrap;gap:6px;margin-right:24px;padding-right:24px;border-right:1px solid var(--line)}
+.chip-group:last-child{border-right:none;padding-right:0;margin-right:0}
+
+.kpi-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:2px;background:var(--line-strong);border:2px solid var(--line-strong);margin-bottom:40px;box-shadow:0 4px 24px rgba(107,39,55,0.06)}
+.kpi-grid.cols-6{grid-template-columns:repeat(6,1fr)}
+.kpi{background:var(--paper);padding:28px 24px;display:flex;flex-direction:column;position:relative;overflow:hidden;min-height:170px}
+.kpi::before{content:"";position:absolute;top:0;left:0;width:48px;height:3px;background:var(--gold)}
+.kpi-label{font-family:'JetBrains Mono',monospace;font-size:11px;text-transform:uppercase;letter-spacing:0.12em;color:var(--gold-dark);margin-bottom:14px;font-weight:800}
+.kpi-value{font-family:'Inter',sans-serif;font-weight:900;font-size:44px;line-height:1.05;letter-spacing:-0.03em;color:var(--ink);margin-bottom:8px}
+.kpi-value em{font-style:italic;color:var(--burgundy);font-weight:900}
+.kpi-value.danger{color:var(--red)}
+.kpi-value.warn{color:var(--gold-dark)}
+.kpi-value.good{color:var(--green)}
+.kpi-sub{font-family:'Inter',sans-serif;font-size:13px;color:var(--muted);margin-top:auto;line-height:1.5;font-weight:600}
+.kpi-trend{display:inline-block;padding:4px 10px;font-size:11px;font-weight:800;font-family:'JetBrains Mono',monospace;margin-left:10px;letter-spacing:0.05em}
+.trend-neutral{background:var(--gold);color:var(--paper)}
+.kpi-warn::after{content:"●";position:absolute;top:18px;right:24px;font-size:18px;color:var(--burgundy);opacity:0.4}
+
+.status-legend{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:2px;background:var(--line-strong);border:2px solid var(--line-strong);margin-bottom:32px}
+.legend-item{background:var(--paper);padding:20px;display:flex;flex-direction:column;gap:6px;position:relative}
+.legend-item::before{content:"";position:absolute;left:0;top:0;bottom:0;width:5px}
+.legend-item.lg-done::before{background:var(--st-done)}
+.legend-item.lg-doing::before{background:var(--st-doing)}
+.legend-item.lg-wait::before{background:var(--st-wait)}
+.legend-item.lg-planning::before{background:var(--st-planning)}
+.legend-item.lg-hold::before{background:var(--st-hold)}
+.legend-item.lg-fail::before{background:var(--st-fail)}
+.legend-status{font-family:'Inter',sans-serif;font-size:14px;font-weight:900;text-transform:uppercase;letter-spacing:0.05em}
+.legend-status.lg-done{color:var(--st-done)}
+.legend-status.lg-doing{color:var(--st-doing)}
+.legend-status.lg-wait{color:var(--st-wait)}
+.legend-status.lg-planning{color:var(--gold-dark)}
+.legend-status.lg-hold{color:var(--st-hold)}
+.legend-status.lg-fail{color:var(--st-fail)}
+.legend-meaning{font-size:13px;color:var(--ink-soft);line-height:1.5;font-weight:500}
+.legend-count{font-family:'Inter',sans-serif;font-size:28px;color:var(--ink);font-weight:900;margin-top:4px;letter-spacing:-0.02em}
+.legend-count em{font-style:normal;font-size:13px;color:var(--muted);font-weight:600;margin-left:6px}
+
+.grid{display:grid;gap:28px;margin-bottom:36px}
+.grid-2{grid-template-columns:1fr 1fr}
+.grid-3{grid-template-columns:1fr 1fr 1fr}
+.grid-23{grid-template-columns:2fr 1fr}
+
+.card{background:var(--paper);border:2px solid var(--line);padding:32px;position:relative;box-shadow:0 2px 16px rgba(26,26,26,0.04)}
+.card::before{content:"";position:absolute;top:-2px;left:32px;right:32px;height:3px;background:linear-gradient(90deg,transparent,var(--gold-light),transparent)}
+.card-head{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:24px;padding-bottom:16px;border-bottom:1.5px solid var(--line);gap:12px;flex-wrap:wrap}
+.card-title{font-family:'Inter',sans-serif;font-weight:800;font-size:24px;letter-spacing:-0.02em;color:var(--ink)}
+.card-title em{font-style:italic;color:var(--burgundy);font-weight:800}
+.card-meta{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--gold-dark);text-transform:uppercase;letter-spacing:0.1em;font-weight:800}
+.chart-wrap{position:relative;height:340px}
+.chart-wrap.tall{height:480px}
+.chart-wrap.xtall{height:600px}
+.chart-wrap.short{height:240px}
+
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{text-align:left;font-family:'JetBrains Mono',monospace;font-weight:800;font-size:11px;text-transform:uppercase;letter-spacing:0.1em;color:var(--gold-dark);padding:13px 10px;border-bottom:2px solid var(--line-strong);background:var(--pearl)}
+td{padding:12px 10px;border-bottom:1px solid var(--line);font-weight:500;font-family:'Inter',sans-serif}
+tr:hover td{background:var(--pearl)}
+td.num,th.num{text-align:right;font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:700}
+td.tag{font-family:'JetBrains Mono',monospace;font-size:11px;text-transform:uppercase;letter-spacing:0.04em;color:var(--muted);font-weight:700}
+.pill{display:inline-block;padding:4px 10px;font-size:11px;font-weight:800;font-family:'JetBrains Mono',monospace;text-transform:uppercase;letter-spacing:0.04em;border:1px solid transparent}
+.pill-done{background:var(--st-done);color:var(--paper)}
+.pill-doing{background:var(--st-doing);color:var(--paper)}
+.pill-wait{background:var(--st-wait);color:var(--paper)}
+.pill-planning{background:var(--st-planning);color:var(--gold-dark);border-color:var(--gold)}
+.pill-hold{background:var(--paper-2);color:var(--muted);border-color:var(--line-strong)}
+.pill-fail{background:var(--st-fail);color:var(--paper)}
+.pill-revise{background:var(--st-revise);color:var(--paper)}
+.bar-cell{position:relative;background:var(--pearl);min-width:120px}
+.bar-cell .bar{position:absolute;left:0;top:0;bottom:0;background:linear-gradient(90deg,var(--burgundy),var(--gold));opacity:0.22}
+.bar-cell.danger .bar{background:linear-gradient(90deg,var(--red),var(--burgundy));opacity:0.3}
+.bar-cell .label{position:relative;z-index:1;padding:11px;font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--burgundy);font-weight:800}
+
+.section-title{font-family:'Inter',sans-serif;font-weight:900;font-size:36px;letter-spacing:-0.03em;margin:56px 0 24px;display:flex;align-items:baseline;gap:20px;color:var(--ink);flex-wrap:wrap}
+.section-title em{font-style:italic;color:var(--burgundy);font-weight:900}
+.section-title .ornament{color:var(--gold);font-weight:700}
+.section-title .num{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--gold-dark);letter-spacing:0.15em;padding:7px 12px;border:2px solid var(--gold);background:var(--pearl);font-weight:800;text-transform:uppercase}
+
+.insight{background:linear-gradient(135deg,var(--burgundy-dark) 0%,var(--burgundy) 100%);color:var(--paper);padding:48px;margin:40px 0;border:2px solid var(--gold);position:relative;overflow:hidden}
+.insight::before{content:"";position:absolute;top:0;left:0;right:0;height:4px;background:linear-gradient(90deg,var(--gold-dark),var(--gold),var(--gold-light),var(--gold),var(--gold-dark))}
+.insight::after{content:"";position:absolute;top:-40px;right:-40px;width:200px;height:200px;border:2px solid var(--gold);border-radius:50%;opacity:0.18}
+.insight-label{font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--gold-light);text-transform:uppercase;letter-spacing:0.18em;margin-bottom:16px;font-weight:800}
+.insight-text{font-family:'Inter',sans-serif;font-weight:700;font-size:26px;line-height:1.45;letter-spacing:-0.02em;position:relative;z-index:1}
+.insight-text em{font-style:italic;color:var(--gold-light);font-weight:900}
+
+.scenario-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:28px;margin:32px 0}
+.scenario{padding:40px 32px;border:2px solid var(--line-strong);position:relative;background:var(--paper);transition:transform 0.3s ease}
+.scenario:hover{transform:translateY(-4px)}
+.scenario-best{background:linear-gradient(180deg,var(--pearl) 0%,var(--paper) 100%);border-color:var(--green)}
+.scenario-best::before{content:"";position:absolute;top:0;left:0;right:0;height:4px;background:var(--green)}
+.scenario-base{background:linear-gradient(180deg,var(--paper) 0%,var(--paper-2) 100%);border-color:var(--gold)}
+.scenario-base::before{content:"";position:absolute;top:0;left:0;right:0;height:4px;background:var(--gold)}
+.scenario-worst{background:linear-gradient(180deg,#f9eeee 0%,var(--paper) 100%);border-color:var(--red)}
+.scenario-worst::before{content:"";position:absolute;top:0;left:0;right:0;height:4px;background:var(--red)}
+.scenario-label{font-family:'JetBrains Mono',monospace;font-size:12px;text-transform:uppercase;letter-spacing:0.18em;margin-bottom:20px;font-weight:800}
+.scenario-best .scenario-label{color:var(--green)}
+.scenario-base .scenario-label{color:var(--gold-dark)}
+.scenario-worst .scenario-label{color:var(--red)}
+.scenario-value{font-family:'Inter',sans-serif;font-weight:900;font-size:56px;letter-spacing:-0.04em;line-height:1;margin-bottom:10px;color:var(--ink)}
+.scenario-sub{font-family:'Inter',sans-serif;font-style:italic;font-size:15px;color:var(--muted);margin-bottom:28px;font-weight:600}
+.scenario-detail{font-size:14px;line-height:1.9;padding-top:20px;border-top:1.5px solid var(--line);font-weight:500}
+.scenario-detail strong{font-weight:800;color:var(--ink)}
+
+.glossary{background:var(--pearl);border:2px solid var(--line);padding:24px 28px;margin-bottom:32px}
+.glossary-title{font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--gold-dark);text-transform:uppercase;letter-spacing:0.15em;margin-bottom:14px;font-weight:800}
+.glossary-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:20px}
+.glossary-item{font-size:13px;color:var(--ink-soft);line-height:1.6;font-weight:500}
+.glossary-item strong{font-family:'Inter',sans-serif;font-size:16px;color:var(--burgundy);font-weight:800;display:block;margin-bottom:3px}
+.glossary-item .formula{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--gold-dark);display:block;margin-top:5px;font-weight:700}
+
+.diag-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:24px;margin:24px 0}
+.diag-card{background:var(--paper);border:2px solid var(--line);border-top:4px solid var(--red);padding:28px}
+.diag-card.warn{border-top-color:var(--gold)}
+.diag-card.good{border-top-color:var(--green)}
+.diag-label{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--gold-dark);text-transform:uppercase;letter-spacing:0.12em;margin-bottom:12px;font-weight:800}
+.diag-value{font-family:'Inter',sans-serif;font-size:42px;color:var(--ink);font-weight:900;line-height:1.05;margin-bottom:8px;letter-spacing:-0.03em}
+.diag-value.danger{color:var(--red)}
+.diag-value.warn{color:var(--gold-dark)}
+.diag-value.good{color:var(--green)}
+.diag-detail{font-size:14px;color:var(--muted);line-height:1.6;margin-top:12px;padding-top:12px;border-top:1.5px solid var(--line);font-weight:500}
+.diag-detail strong{color:var(--ink);font-weight:800}
+
+.footer{border-top:2px solid var(--line);padding:32px 56px;margin-top:96px;font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:0.15em;text-align:center;font-weight:700}
+.footer .ornament{color:var(--gold);margin:0 12px}
+
+@media(max-width:1200px){
+  .kpi-grid,.kpi-grid.cols-6{grid-template-columns:repeat(2,1fr)}
+  .grid-2,.grid-3,.grid-23{grid-template-columns:1fr}
+  .scenario-grid{grid-template-columns:1fr}
+  .page-title h1{font-size:48px}
+}
+@media(max-width:768px){
+  .header,.main{padding-left:24px;padding-right:24px}
+  .header-inner{flex-direction:column;align-items:flex-start;gap:20px}
+  .tabs{width:100%;overflow-x:auto}
+  .tab{padding:12px 16px;font-size:11px;white-space:nowrap}
+  .scenario-value{font-size:42px}
+}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-inner">
+    <div class="brand">
+      <div class="brand-mark">SYD<span class="accent"> · </span>2026</div>
+      <div class="brand-divider"></div>
+      <div class="brand-meta">
+        <div><strong>EXECUTIVE DASHBOARD</strong></div>
+        <div>Prepared for CEO Review</div>
+      </div>
+    </div>
+    <div class="tabs">
+      <button class="tab active" data-page="finance">I &nbsp;·&nbsp; Finance</button>
+      <button class="tab" data-page="team">II &nbsp;·&nbsp; Performance</button>
+      <button class="tab" data-page="quality">III &nbsp;·&nbsp; Sale Quality</button>
+      <button class="tab" data-page="analysis">IV &nbsp;·&nbsp; Forecast</button>
+    </div>
+  </div>
+</div>
+
+<div class="main">
+
+<div class="status-legend" id="status-legend"></div>
+
+<!-- ===== FINANCE ===== -->
+<div class="page active" id="page-finance">
+  <div class="page-title">
+    <div class="eyebrow">Chapter I</div>
+    <h1>The Money <em>Map</em></h1>
+    <div class="subtitle">Revenue · Cost · Receivables · Payables · Cash Position</div>
+  </div>
+
+  <div class="glossary">
+    <div class="glossary-title">◆ คำนิยาม & สูตรการคำนวณ</div>
+    <div class="glossary-grid">
+      <div class="glossary-item"><strong>Real Revenue</strong>รายได้จริงจากดีลที่กำลังทำ/ทำเสร็จ<span class="formula">= Σ Budget ของดีล STATUS ∈ {Doing, Done}</span></div>
+      <div class="glossary-item"><strong>Real GP</strong>กำไรขั้นต้นหลังหักต้นทุน<span class="formula">= Σ GP ของดีล STATUS ∈ {Doing, Done}</span></div>
+      <div class="glossary-item"><strong>AR Outstanding</strong>เงินที่ออกบิลแล้ว ยังเก็บไม่ได้<span class="formula">= Σ "เงินรอได้" จาก Doing+Done + ค้าง 2025</span></div>
+      <div class="glossary-item"><strong>Cash on Hand</strong>เงินสดที่ถือจริงตอนนี้<span class="formula">= Cash In − Cash Out</span></div>
+      <div class="glossary-item"><strong>Runway</strong>กี่เดือนที่อยู่ได้ ถ้าไม่มีรายได้เข้าใหม่<span class="formula">= Cash on Hand ÷ (Fixed Cost ÷ 12)</span></div>
+      <div class="glossary-item"><strong>AP Outstanding</strong>หนี้ที่ต้องจ่าย KOL/Supplier<span class="formula">= Σ "เงินรอจ่าย" จาก Doing+Done + ค้าง 2025</span></div>
+    </div>
+  </div>
+
+  <div class="filter-bar">
+    <span class="filter-label">◆ Filter</span>
+    <div class="chip-group" data-filter-group="finance-quarter">
+      <button class="chip active" data-filter="all">All Quarters</button>
+      <button class="chip" data-filter="Q1">Q1</button>
+      <button class="chip" data-filter="Q2">Q2</button>
+      <button class="chip" data-filter="Q3">Q3</button>
+      <button class="chip" data-filter="Q4">Q4</button>
+    </div>
+    <div class="chip-group" data-filter-group="finance-service">
+      <button class="chip active" data-filter="all">All Service</button>
+      <button class="chip" data-filter="CMP">CMP</button>
+      <button class="chip" data-filter="MA">MA</button>
+    </div>
+  </div>
+
+  <div class="kpi-grid" id="finance-kpis"></div>
+
+  <div class="grid grid-23">
+    <div class="card">
+      <div class="card-head">
+        <div class="card-title">Monthly Revenue <em>Recognition</em></div>
+        <div class="card-meta">Doing + Done · spread by timeline</div>
+      </div>
+      <div class="chart-wrap"><canvas id="ch-monthly-rev"></canvas></div>
+    </div>
+    <div class="card">
+      <div class="card-head">
+        <div class="card-title">Cash <em>Position</em></div>
+        <div class="card-meta">In · AR · Out · AP</div>
+      </div>
+      <div class="chart-wrap"><canvas id="ch-cash-position"></canvas></div>
+      <div style="margin-top:14px;font-size:12px;color:var(--muted);line-height:1.7;border-top:1.5px solid var(--line);padding-top:12px;font-weight:600">
+        <div><strong style="color:var(--green);font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:800">CASH IN</strong> · เงินสดที่รับเข้ามาแล้วจริง</div>
+        <div><strong style="color:var(--gold-dark);font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:800">AR PENDING</strong> · เงินที่ค้างเก็บจากลูกค้า</div>
+        <div><strong style="color:var(--burgundy);font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:800">CASH OUT</strong> · เงินที่จ่ายออกไปแล้ว</div>
+        <div><strong style="color:var(--red);font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:800">AP PENDING</strong> · หนี้ที่ต้องจ่าย KOL/Supplier</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="grid grid-2">
+    <div class="card">
+      <div class="card-head">
+        <div class="card-title">Cost Structure <em>2025 vs 2026</em></div>
+        <div class="card-meta">Fixed Cost reset · −30%</div>
+      </div>
+      <div class="chart-wrap"><canvas id="ch-cost-compare"></canvas></div>
+    </div>
+    <div class="card">
+      <div class="card-head">
+        <div class="card-title">GP Margin by <em>Service</em></div>
+        <div class="card-meta">Doing + Done</div>
+      </div>
+      <div class="chart-wrap"><canvas id="ch-gp-service"></canvas></div>
+    </div>
+  </div>
+
+  <div class="section-title"><em>Watchlist</em><span class="ornament">●</span>Accounts Receivable<span class="num" id="ar-total-badge">—</span></div>
+
+  <div class="card">
+    <div class="card-head">
+      <div class="card-title">Top AR — <em>เงินที่ต้องไล่เก็บ</em></div>
+      <div class="card-meta">เฉพาะดีล STATUS = Doing / Done + ค้าง 2025</div>
+    </div>
+    <div class="card-body" style="overflow-x:auto">
+      <table id="tbl-ar"></table>
+    </div>
+  </div>
+
+  <div class="grid grid-2" style="margin-top:28px">
+    <div class="card">
+      <div class="card-head">
+        <div class="card-title">AR by <em>Section</em></div>
+        <div class="card-meta">2025 carry-over vs 2026</div>
+      </div>
+      <div class="chart-wrap short"><canvas id="ch-ar-section"></canvas></div>
+    </div>
+    <div class="card">
+      <div class="card-head">
+        <div class="card-title">AP — <em>หนี้รอจ่าย</em></div>
+        <div class="card-meta">KOL & supplier balance</div>
+      </div>
+      <div class="chart-wrap short"><canvas id="ch-ap-section"></canvas></div>
+    </div>
+  </div>
+
+  <div class="insight">
+    <div class="insight-label">◆ Finance · Bottom Line</div>
+    <div class="insight-text" id="finance-bottom-line"></div>
+  </div>
+</div>
+
+<!-- ===== PERFORMANCE ===== -->
+<div class="page" id="page-team">
+  <div class="page-title">
+    <div class="eyebrow">Chapter II</div>
+    <h1>People at <em>Work</em></h1>
+    <div class="subtitle">Sales · Project Management · KOL Operations · Workload</div>
+  </div>
+
+  <div class="filter-bar">
+    <span class="filter-label">◆ Filter</span>
+    <div class="chip-group" data-filter-group="team-sale">
+      <button class="chip active" data-filter="all">All Sales</button>
+      <button class="chip" data-filter="AE">AE</button>
+      <button class="chip" data-filter="BEE">BEE</button>
+      <button class="chip" data-filter="NESS">NESS</button>
+      <button class="chip" data-filter="OTHER">OTHER</button>
+      <button class="chip" data-filter="TOON">TOON</button>
+    </div>
+    <div class="chip-group" data-filter-group="team-quarter">
+      <button class="chip active" data-filter="all">All Quarters</button>
+      <button class="chip" data-filter="Q1">Q1</button>
+      <button class="chip" data-filter="Q2">Q2</button>
+      <button class="chip" data-filter="Q3">Q3</button>
+      <button class="chip" data-filter="Q4">Q4</button>
+    </div>
+  </div>
+
+  <div class="kpi-grid" id="team-kpis"></div>
+
+  <div class="section-title">Sales <em>Performance</em><span class="ornament">●</span><span class="num">Win Rate · Done+Doing ÷ (Done+Doing+Fail)</span></div>
+
+  <div class="grid grid-2">
+    <div class="card">
+      <div class="card-head">
+        <div class="card-title">Win Rate by <em>Sale</em></div>
+        <div class="card-meta">Won (Done+Doing) ÷ (Won + Fail)</div>
+      </div>
+      <div class="chart-wrap"><canvas id="ch-sale-winrate"></canvas></div>
+    </div>
+    <div class="card">
+      <div class="card-head">
+        <div class="card-title">Won vs Lost <em>Value</em></div>
+        <div class="card-meta">Real Revenue vs Lost Opportunity</div>
+      </div>
+      <div class="chart-wrap"><canvas id="ch-sale-value"></canvas></div>
+    </div>
+  </div>
+
+  <div class="card" style="margin-top:28px">
+    <div class="card-head">
+      <div class="card-title">Sales <em>Scorecard</em> · ทุก Status</div>
+      <div class="card-meta">Filter ทำงานบนตารางและกราฟทั้งหมด</div>
+    </div>
+    <div class="card-body" style="overflow-x:auto">
+      <table id="tbl-sales"></table>
+    </div>
+  </div>
+
+  <div class="section-title">Team <em>Workload</em><span class="ornament">●</span><span class="num">Concentration Risk</span></div>
+
+  <div class="grid grid-2">
+    <div class="card">
+      <div class="card-head">
+        <div class="card-title">PM <em>Workload</em></div>
+        <div class="card-meta">Active deals + revenue</div>
+      </div>
+      <div class="chart-wrap"><canvas id="ch-pm-workload"></canvas></div>
+    </div>
+    <div class="card">
+      <div class="card-head">
+        <div class="card-title">Planner <em>Workload</em></div>
+        <div class="card-meta">Deals × Budget value</div>
+      </div>
+      <div class="chart-wrap"><canvas id="ch-planner-workload"></canvas></div>
+    </div>
+  </div>
+
+  <div class="grid grid-2" style="margin-top:28px">
+    <div class="card">
+      <div class="card-head">
+        <div class="card-title">KOL Operator <em>Performance</em></div>
+        <div class="card-meta">จำนวน KOL ที่บริหารทั้งหมด</div>
+      </div>
+      <div class="card-body" style="overflow-x:auto">
+        <table id="tbl-kol"></table>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-head">
+        <div class="card-title">ADS Optimizer <em>Load</em></div>
+        <div class="card-meta">Deals × Revenue managed</div>
+      </div>
+      <div class="card-body" style="overflow-x:auto">
+        <table id="tbl-ads"></table>
+      </div>
+    </div>
+  </div>
+
+  <div class="section-title">Capacity <em>Utilization</em><span class="ornament">●</span><span class="num">By Person · Total deals across all roles</span></div>
+
+  <div class="card">
+    <div class="card-head">
+      <div class="card-title">Capacity <em>by Person</em></div>
+      <div class="card-meta">รวมทุก Role เข้าด้วยกัน · 5 ชม./สัปดาห์ต่อ 1 ดีล · 40 ชม./สัปดาห์ = full</div>
+    </div>
+    <div class="chart-wrap tall"><canvas id="ch-capacity-person"></canvas></div>
+  </div>
+
+  <div class="card" style="margin-top:28px">
+    <div class="card-head">
+      <div class="card-title">Capacity Table <em>by Person</em></div>
+      <div class="card-meta">รายคน · นับดีลทั้งหมดที่ถือ ไม่แยก Role</div>
+    </div>
+    <div class="card-body" style="overflow-x:auto">
+      <table id="tbl-capacity-person"></table>
+    </div>
+  </div>
+
+  <div class="insight">
+    <div class="insight-label">◆ Team · Bottom Line</div>
+    <div class="insight-text" id="team-bottom-line"></div>
+  </div>
+</div>
+
+<!-- ===== QUALITY ===== -->
+<div class="page" id="page-quality">
+  <div class="page-title">
+    <div class="eyebrow">Chapter III</div>
+    <h1>Sale Quality <em>Diagnostic</em></h1>
+    <div class="subtitle">ลีดคุณภาพ · เวลาที่เสีย · เงินที่หาย · workload ที่ทีมต้องแบก</div>
+  </div>
+
+  <div class="glossary">
+    <div class="glossary-title">◆ ทำไมต้องวัด Sale Quality</div>
+    <div class="glossary-grid">
+      <div class="glossary-item"><strong>Lost Revenue</strong>มูลค่ารายได้ที่เสียจากดีล Fail<span class="formula">= Σ Budget ของดีล STATUS = Fail</span></div>
+      <div class="glossary-item"><strong>Wasted KOLs</strong>จำนวน KOL ที่เตรียมไว้แล้วเสียเปล่า<span class="formula">= Σ No.KOLs ของดีล Fail</span></div>
+      <div class="glossary-item"><strong>Quality Score</strong>คะแนนคุณภาพลีด (ยิ่งสูงยิ่งดี)<span class="formula">= Win Rate × Revenue Capture × (1 − Waste Ratio)</span></div>
+      <div class="glossary-item"><strong>Workload Tax</strong>เวลาที่ทีมแบก = ดีลค้าง × estimated hrs<span class="formula">= (Hold + Wait + Planning + Fail) × 8 hrs/deal</span></div>
+    </div>
+  </div>
+
+  <div class="kpi-grid cols-6" id="quality-kpis"></div>
+
+  <div class="section-title">Diagnostic <em>Findings</em><span class="ornament">●</span><span class="num">ปัญหาที่พบ</span></div>
+
+  <div class="diag-grid" id="diag-cards"></div>
+
+  <div class="section-title">Status <em>Distribution</em><span class="ornament">●</span><span class="num">ภาพรวมทุก Status</span></div>
+
+  <div class="grid grid-2">
+    <div class="card">
+      <div class="card-head">
+        <div class="card-title">Pipeline <em>Health</em></div>
+        <div class="card-meta">จำนวน × มูลค่า by Status</div>
+      </div>
+      <div class="chart-wrap"><canvas id="ch-status-full"></canvas></div>
+    </div>
+    <div class="card">
+      <div class="card-head">
+        <div class="card-title">Revenue <em>at Risk</em></div>
+        <div class="card-meta">% ของรายได้ที่ติดอยู่ในแต่ละ Status</div>
+      </div>
+      <div class="chart-wrap"><canvas id="ch-status-revenue"></canvas></div>
+    </div>
+  </div>
+
+  <div class="section-title">Quality by <em>Channel (By)</em><span class="ornament">●</span><span class="num">ลีดมาจากช่องทางไหน คุณภาพแค่ไหน</span></div>
+
+  <div class="grid grid-2">
+    <div class="card">
+      <div class="card-head">
+        <div class="card-title">Win Rate by <em>Channel</em></div>
+        <div class="card-meta">ช่องทางไหน Fail บ่อย</div>
+      </div>
+      <div class="chart-wrap"><canvas id="ch-channel-winrate"></canvas></div>
+    </div>
+    <div class="card">
+      <div class="card-head">
+        <div class="card-title">Lost Value by <em>Channel</em></div>
+        <div class="card-meta">เงินที่หายไปแยกตามช่องทาง</div>
+      </div>
+      <div class="chart-wrap"><canvas id="ch-channel-lost"></canvas></div>
+    </div>
+  </div>
+
+  <div class="card" style="margin-top:28px">
+    <div class="card-head">
+      <div class="card-title">Channel <em>Quality Matrix</em></div>
+      <div class="card-meta">ทุกช่องทาง · ทุก Status · มูลค่ารวม</div>
+    </div>
+    <div class="card-body" style="overflow-x:auto">
+      <table id="tbl-channel"></table>
+    </div>
+  </div>
+
+  <div class="section-title">Sale <em>Quality Scorecard</em><span class="ornament">●</span><span class="num">วิเคราะห์รายคน · ทุก Status</span></div>
+
+  <div class="card">
+    <div class="card-head">
+      <div class="card-title">Quality Score by <em>Sale</em></div>
+      <div class="card-meta">Win Rate · Revenue Capture · Waste Ratio · Wasted KOLs · Lost Value</div>
+    </div>
+    <div class="card-body" style="overflow-x:auto">
+      <table id="tbl-sale-quality"></table>
+    </div>
+  </div>
+
+  <div class="section-title">Lost <em>Deal Anatomy</em><span class="ornament">●</span><span class="num" id="lost-badge">—</span></div>
+
+  <div class="card">
+    <div class="card-head">
+      <div class="card-title">All <em>Failed Deals</em> — Top by Lost Value</div>
+      <div class="card-meta">เห็นว่าดีลใหญ่ๆ Fail ที่ใคร · จากช่องทางไหน</div>
+    </div>
+    <div class="card-body" style="overflow-x:auto">
+      <table id="tbl-lost-deals"></table>
+    </div>
+  </div>
+
+  <div class="insight">
+    <div class="insight-label">◆ Sale Quality · Bottom Line</div>
+    <div class="insight-text" id="quality-bottom-line"></div>
+  </div>
+</div>
+
+<!-- ===== FORECAST ===== -->
+<div class="page" id="page-analysis">
+  <div class="page-title">
+    <div class="eyebrow">Chapter IV</div>
+    <h1>Forecast &amp; <em>Scenarios</em></h1>
+    <div class="subtitle">Pipeline Quality · Win/Loss · 12-Month Cash Forecast</div>
+  </div>
+
+  <div class="kpi-grid" id="analysis-kpis"></div>
+
+  <div class="section-title">Pipeline <em>Health</em><span class="ornament">●</span><span class="num">งานที่เข้ามา · คุณภาพ · มูลค่า</span></div>
+
+  <div class="grid grid-2">
+    <div class="card">
+      <div class="card-head">
+        <div class="card-title">Pipeline by <em>Quarter</em></div>
+        <div class="card-meta">งานกระจุก Q1 · ครึ่งปีหลังว่าง</div>
+      </div>
+      <div class="chart-wrap"><canvas id="ch-pipe-quarter"></canvas></div>
+    </div>
+    <div class="card">
+      <div class="card-head">
+        <div class="card-title">Service <em>Mix</em></div>
+        <div class="card-meta">ADS · Review · Production · etc.</div>
+      </div>
+      <div class="chart-wrap"><canvas id="ch-type-mix"></canvas></div>
+    </div>
+  </div>
+
+  <div class="grid grid-2" style="margin-top:28px">
+    <div class="card">
+      <div class="card-head">
+        <div class="card-title">GP Margin <em>Distribution</em></div>
+        <div class="card-meta">ดีลที่ GP &lt; 20% = pricing risk</div>
+      </div>
+      <div class="chart-wrap"><canvas id="ch-gp-dist"></canvas></div>
+    </div>
+    <div class="card">
+      <div class="card-head">
+        <div class="card-title">Status <em>Counts</em></div>
+        <div class="card-meta">all 6 statuses</div>
+      </div>
+      <div class="chart-wrap"><canvas id="ch-status-pie"></canvas></div>
+    </div>
+  </div>
+
+  <div class="section-title"><em>Forecast</em> Scenarios<span class="ornament">●</span><span class="num">FY 2026 Annual Projection</span></div>
+
+  <div class="scenario-grid">
+    <div class="scenario scenario-best">
+      <div class="scenario-label">◇ Best Case</div>
+      <div class="scenario-value" id="best-rev">—</div>
+      <div class="scenario-sub">เก็บ AR 80% · Wait → Won 75%</div>
+      <div class="scenario-detail" id="best-detail"></div>
+    </div>
+    <div class="scenario scenario-base">
+      <div class="scenario-label">◆ Base Case</div>
+      <div class="scenario-value" id="base-rev">—</div>
+      <div class="scenario-sub">เก็บ AR 50% · Wait → Won 40%</div>
+      <div class="scenario-detail" id="base-detail"></div>
+    </div>
+    <div class="scenario scenario-worst">
+      <div class="scenario-label">◈ Worst Case</div>
+      <div class="scenario-value" id="worst-rev">—</div>
+      <div class="scenario-sub">เก็บ AR 25% · Wait → Won 15%</div>
+      <div class="scenario-detail" id="worst-detail"></div>
+    </div>
+  </div>
+
+  <div class="card" style="margin-top:28px">
+    <div class="card-head">
+      <div class="card-title">12-Month <em>Cash Flow</em> Forecast</div>
+      <div class="card-meta">Base Case · เทียบ Fixed Cost รายเดือน</div>
+    </div>
+    <div class="chart-wrap tall"><canvas id="ch-cashflow"></canvas></div>
+  </div>
+
+  <div class="section-title">Forecast <em>Assumptions</em><span class="ornament">●</span><span class="num">สมมติฐานที่ใช้</span></div>
+
+  <div class="card">
+    <div class="card-body" style="overflow-x:auto">
+      <table>
+        <thead><tr><th>หมวด</th><th>ตัวแปร</th><th class="num">Best</th><th class="num">Base</th><th class="num">Worst</th><th>เหตุผล</th></tr></thead>
+        <tbody>
+          <tr><td>Revenue</td><td>AR Collection Rate</td><td class="num">80%</td><td class="num">50%</td><td class="num">25%</td><td>Historical ~30% · ต้องดีขึ้นจาก collection war room</td></tr>
+          <tr><td>Revenue</td><td>Wait → Won Conversion</td><td class="num">75%</td><td class="num">40%</td><td class="num">15%</td><td>ดีล Wait ขึ้นกับการ follow ของ Sale</td></tr>
+          <tr><td>Revenue</td><td>Planning → Won Conversion</td><td class="num">60%</td><td class="num">30%</td><td class="num">10%</td><td>ดีล Planning ยังอยู่ในขั้น pitching</td></tr>
+          <tr><td>Revenue</td><td>New Pipeline Q3-Q4</td><td class="num">8M</td><td class="num">4M</td><td class="num">1M</td><td>Q3-Q4 ปัจจุบันมีน้อย · ต้อง seed ใหม่</td></tr>
+          <tr><td>Cost</td><td>Fixed Cost รายปี</td><td class="num">7.18M</td><td class="num">7.18M</td><td class="num">7.50M</td><td>Worst case คาดมี overhead เพิ่ม</td></tr>
+          <tr><td>GP Margin</td><td>Blended GP%</td><td class="num">26%</td><td class="num">22%</td><td class="num">18%</td><td>Current 21.8% · Best: ปรับ pricing</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="insight">
+    <div class="insight-label">◆ Strategic Bet</div>
+    <div class="insight-text" id="analysis-bottom-line"></div>
+  </div>
+</div>
+
+</div>
+
+<div class="footer">
+  SYD ERP <span class="ornament">●</span> Executive Dashboard <span class="ornament">●</span> FY 2026 <span class="ornament">●</span> Confidential
+</div>
+
+<script>
+window.DASHBOARD_DATA = {"pipeline": [{"no": 1, "name": "กุ๊งกิ๊ง KOL (V.1)", "type": "Review", "no_kols": 50.0, "status": "Done", "channel": "TPS", "service": "CMP", "sale": "OTHER", "quarter": "Q1", "budget": 200000.0, "gp": 40000.0, "gp_pct": 20.0, "pm": "GOLF", "planner": "BANK", "kol_op": "GOLF", "ads_opt": "KAN, THREE", "start": "2026-01-01", "end": "2026-02-28", "op_status": "แจ้งออกใบ PR"}, {"no": 2, "name": "กุ๊งกิ๊ง (Ads)", "type": "ADS", "no_kols": 0.0, "status": "Doing", "channel": "TPS", "service": "CMP", "sale": "OTHER", "quarter": "Q1", "budget": 150000.0, "gp": 0.0, "gp_pct": 0.0, "pm": "BOW", "planner": "FJ", "kol_op": "N/A", "ads_opt": "KAN", "start": "2026-01-01", "end": "2026-02-28", "op_status": "ยังไม่ออกใบเสนอราคา"}, {"no": 3, "name": "Bellotta", "type": "Review", "no_kols": 70.0, "status": "Doing", "channel": "TPS", "service": "MA", "sale": "BEE", "quarter": "Q2", "budget": 299640.0, "gp": 61240.0, "gp_pct": 20.437858763849952, "pm": "GOLF", "planner": "BANK", "kol_op": "GOLF", "ads_opt": "PANG", "start": "2026-04-01", "end": "2026-06-30", "op_status": "ออกใบเสนอราคาแล้ว"}, {"no": 4, "name": "Belly Gom", "type": "ADS", "no_kols": 0.0, "status": "Doing", "channel": "TPS", "service": "MA", "sale": "AE", "quarter": "Q1", "budget": 144000.0, "gp": 45600.0, "gp_pct": 31.666666666666664, "pm": "BOW", "planner": "FJ", "kol_op": "N/A", "ads_opt": "THREE", "start": "2026-01-01", "end": "2026-12-31", "op_status": "แจ้งออกใบ PR"}, {"no": 5, "name": "ยอดคุณ", "type": "ADS", "no_kols": 0.0, "status": "Doing", "channel": "TPS", "service": "MA", "sale": "AE", "quarter": "Q1", "budget": 1140000.0, "gp": 291000.0, "gp_pct": 25.526315789473685, "pm": "BOW", "planner": "FJ", "kol_op": "N/A", "ads_opt": "THREE", "start": "2026-01-01", "end": "2026-12-31", "op_status": "ออกใบเสนอราคาแล้ว"}, {"no": 6, "name": "Healthy Pet Food Jan-Feb", "type": "ADS", "no_kols": 0.0, "status": "Done", "channel": "TPS", "service": "MA", "sale": "AE", "quarter": "Q1", "budget": 120000.0, "gp": 68000.0, "gp_pct": 56.666666666666664, "pm": "BOW", "planner": "FJ", "kol_op": "N/A", "ads_opt": "KAN", "start": "2026-01-01", "end": "2026-02-28", "op_status": "ออกใบเสนอราคาแล้ว"}, {"no": 7, "name": "Healthy Pet Food Mar-May", "type": "ADS", "no_kols": 0.0, "status": "Doing", "channel": "TPS", "service": "MA", "sale": "AE", "quarter": "Q1", "budget": 180000.0, "gp": 102000.0, "gp_pct": 56.666666666666664, "pm": "BOW", "planner": "FJ", "kol_op": "N/A", "ads_opt": "KAN", "start": "2026-03-01", "end": "2026-05-31", "op_status": "ยังไม่ออกใบเสนอราคา"}, {"no": 8, "name": "OHYAMA", "type": "ADS", "no_kols": 0.0, "status": "Done", "channel": "TPS", "service": "MA", "sale": "AE", "quarter": "Q1", "budget": 195000.0, "gp": 64667.0, "gp_pct": 33.162564102564104, "pm": "BOW", "planner": "FJ", "kol_op": "N/A", "ads_opt": "KAN", "start": "2025-12-01", "end": "2026-02-28", "op_status": "ออกใบเสนอราคาแล้ว"}, {"no": 9, "name": "TCL (Old Project)", "type": "ADS", "no_kols": 0.0, "status": "Doing", "channel": "TPS", "service": "CMP", "sale": "BEE", "quarter": "Q1", "budget": 316717.0, "gp": 80625.0, "gp_pct": 25.456480075272246, "pm": "BOW", "planner": "BANK", "kol_op": "N/A", "ads_opt": "THREE", "start": "2025-12-01", "end": "", "op_status": "ยังไม่ออกใบเสนอราคา"}, {"no": 10, "name": "TCL (WOM)", "type": "ADS", "no_kols": 0.0, "status": "Doing", "channel": "TPS", "service": "CMP", "sale": "BEE", "quarter": "Q1", "budget": 450000.0, "gp": 65550.0, "gp_pct": 14.566666666666666, "pm": "BOW", "planner": "FJ", "kol_op": "N/A", "ads_opt": "THREE", "start": "2025-09-01", "end": "2026-12-31", "op_status": "ยังไม่ออกใบเสนอราคา"}, {"no": 11, "name": "Pilot (MA)", "type": "ADS", "no_kols": 0.0, "status": "Done", "channel": "TPS", "service": "MA", "sale": "AE", "quarter": "Q1", "budget": 130000.0, "gp": 18000.0, "gp_pct": 13.846153846153847, "pm": "BOW", "planner": "FJ", "kol_op": "N/A", "ads_opt": "KAN", "start": "2025-04-09", "end": "2026-04-30", "op_status": "ออกใบเสนอราคาแล้ว"}, {"no": 12, "name": "Sunleaf", "type": "ADS", "no_kols": 0.0, "status": "Doing", "channel": "TPS", "service": "MA", "sale": "AE", "quarter": "Q1", "budget": 240000.0, "gp": 45000.0, "gp_pct": 18.75, "pm": "BOW", "planner": "FJ", "kol_op": "N/A", "ads_opt": "KAN", "start": "2026-12-31", "end": "2026-05-31", "op_status": "ออกใบเสนอราคาแล้ว"}, {"no": 13, "name": "BabyLove (MA)", "type": "ADS", "no_kols": 0.0, "status": "Doing", "channel": "TPS", "service": "MA", "sale": "AE", "quarter": "Q1", "budget": 660000.0, "gp": 159000.0, "gp_pct": 24.09090909090909, "pm": "BOW", "planner": "FJ", "kol_op": "N/A", "ads_opt": "THREE", "start": "2026-01-01", "end": "2026-12-31", "op_status": "แจ้งออกใบ PR"}, {"no": 14, "name": "Gangnam miin clinic", "type": "ADS", "no_kols": 0.0, "status": "Doing", "channel": "TPS", "service": "MA", "sale": "OTHER", "quarter": "Q2", "budget": 84000.0, "gp": 8200.0, "gp_pct": 9.761904761904763, "pm": "BOW", "planner": "FJ", "kol_op": "N/A", "ads_opt": "THREE", "start": "2025-11-01", "end": "2026-04-30", "op_status": "แจ้งออกใบ PR"}, {"no": 15, "name": "TKN (Wow Corn)", "type": "ADS", "no_kols": 0.0, "status": "Doing", "channel": "TPS", "service": "MA", "sale": "AE", "quarter": "Q1", "budget": 78000.0, "gp": 26700.0, "gp_pct": 34.23076923076923, "pm": "BOW", "planner": "FJ", "kol_op": "N/A", "ads_opt": "KAN", "start": "2026-01-01", "end": "", "op_status": "ออกใบเสนอราคาแล้ว"}, {"no": 16, "name": "TKN (Wow Corn)", "type": "ADS", "no_kols": 0.0, "status": "Done", "channel": "TPS", "service": "CMP", "sale": "AE", "quarter": "Q1", "budget": 20000.0, "gp": 8000.0, "gp_pct": 40.0, "pm": "BOW", "planner": "FJ", "kol_op": "N/A", "ads_opt": "KAN", "start": "2026-02-01", "end": "2026-02-28", "op_status": "ออกใบเสนอราคาแล้ว"}, {"no": 17, "name": "Pejoy", "type": "Review", "no_kols": 0.0, "status": "Wait", "channel": "TPS", "service": "CMP", "sale": "BEE", "quarter": "Q1", "budget": 600000.0, "gp": 90000.0, "gp_pct": 15.0, "pm": "N/A", "planner": "BANK", "kol_op": "N/A", "ads_opt": "N/A", "start": "2026-02-09", "end": "", "op_status": "แจ้งออกใบ PR"}, {"no": 18, "name": "ข้าวตราฉัตร", "type": "ADS", "no_kols": 0.0, "status": "Doing", "channel": "TPS", "service": "MA", "sale": "TOON", "quarter": "Q2", "budget": 144000.0, "gp": 15000.0, "gp_pct": 10.416666666666668, "pm": "N/A", "planner": "BANK", "kol_op": "N/A", "ads_opt": "KAN", "start": "", "end": "", "op_status": "ยังไม่ออกใบเสนอราคา"}, {"no": 19, "name": "BabyLove KOL", "type": "Review", "no_kols": 60.0, "status": "Doing", "channel": "TPS", "service": "CMP", "sale": "AE", "quarter": "Q1", "budget": 72000.0, "gp": 24000.0, "gp_pct": 33.33333333333333, "pm": "FILM", "planner": "BANK", "kol_op": "FILM", "ads_opt": "PANG", "start": "2026-03-11", "end": "2026-07-31", "op_status": "ออกใบเสนอราคาแล้ว"}, {"no": 20, "name": "กุ๊งกิ๊ง KOL (V.2)", "type": "Review", "no_kols": 80.0, "status": "Doing", "channel": "TPS", "service": "CMP", "sale": "AE", "quarter": "Q2", "budget": 150000.0, "gp": 35000.0, "gp_pct": 23.333333333333332, "pm": "GOLF", "planner": "BANK", "kol_op": "GOLF", "ads_opt": "PANG", "start": "2026-04-01", "end": "2026-05-30", "op_status": "ออกใบเสนอราคาแล้ว"}, {"no": 21, "name": "Pretz", "type": "Review", "no_kols": 450.0, "status": "Doing", "channel": "TPS", "service": "CMP", "sale": "BEE", "quarter": "Q1", "budget": 200000.0, "gp": 46998.0, "gp_pct": 23.499, "pm": "GOLF", "planner": "WIN", "kol_op": "GOLF", "ads_opt": "N/A", "start": "", "end": "", "op_status": "ออกใบเสนอราคาแล้ว"}, {"no": 22, "name": "Neobun", "type": "Review + ADS", "no_kols": 50.0, "status": "Wait", "channel": "TPS", "service": "CMP", "sale": "NESS", "quarter": "Q2", "budget": 2000000.0, "gp": 300000.0, "gp_pct": 15.0, "pm": "N/A", "planner": "BANK", "kol_op": "GOLF, FILM", "ads_opt": "KAN", "start": "", "end": "", "op_status": "ยังไม่ออกใบเสนอราคา"}, {"no": 23, "name": "Neobun", "type": "ADS", "no_kols": 0.0, "status": "Doing", "channel": "TPM", "service": "MA", "sale": "NESS", "quarter": "Q2", "budget": 90000.0, "gp": 13500.0, "gp_pct": 15.0, "pm": "N/A", "planner": "BANK", "kol_op": "N/A", "ads_opt": "KAN", "start": "", "end": "", "op_status": "ยังไม่ออกใบเสนอราคา"}, {"no": 24, "name": "MUAY", "type": "ADS", "no_kols": 0.0, "status": "Doing", "channel": "TPM", "service": "MA", "sale": "NESS", "quarter": "Q2", "budget": 90000.0, "gp": 13500.0, "gp_pct": 15.0, "pm": "N/A", "planner": "BANK", "kol_op": "N/A", "ads_opt": "THREE", "start": "", "end": "", "op_status": "ยังไม่ออกใบเสนอราคา"}, {"no": 25, "name": "LIN", "type": "Review", "no_kols": 30.0, "status": "Done", "channel": "TPM", "service": "CMP", "sale": "BEE", "quarter": "Q1", "budget": 100000.0, "gp": 32910.0, "gp_pct": 32.910000000000004, "pm": "FILM", "planner": "BANK", "kol_op": "FILM", "ads_opt": "KAN", "start": "2026-02-01", "end": "", "op_status": "ครบ"}, {"no": 26, "name": "SCOPE (Ads) Feb-Apr", "type": "ADS", "no_kols": 0.0, "status": "Done", "channel": "TPM", "service": "MA", "sale": "OTHER", "quarter": "Q1", "budget": 900000.0, "gp": 369162.0, "gp_pct": 41.018, "pm": "BOW", "planner": "BANK", "kol_op": "N/A", "ads_opt": "KAN", "start": "2026-02-01", "end": "2026-04-30", "op_status": "เรียกเก็บที่เหลือ"}, {"no": 27, "name": "SCOPE (Feb)", "type": "ADS + Production", "no_kols": 0.0, "status": "Doing", "channel": "TPM", "service": "CMP", "sale": "OTHER", "quarter": "Q1", "budget": 30000.0, "gp": 15600.0, "gp_pct": 52.0, "pm": "BOW", "planner": "FJ", "kol_op": "N/A", "ads_opt": "KAN", "start": "2026-02-01", "end": "", "op_status": "ครบ"}, {"no": 28, "name": "SPM (อาหารแมว Buddy Review)", "type": "ADS", "no_kols": 0.0, "status": "Doing", "channel": "TPM", "service": "CMP", "sale": "TOON", "quarter": "Q1", "budget": 180000.0, "gp": 79000.0, "gp_pct": 43.888888888888886, "pm": "BOW", "planner": "BANK", "kol_op": "N/A", "ads_opt": "SUP", "start": "2026-03-16", "end": "2026-07-15", "op_status": "วางบิลแล้ว"}, {"no": 29, "name": "TCL : KOLs", "type": "Review", "no_kols": 0.0, "status": "Doing", "channel": "GTI", "service": "CMP", "sale": "BEE", "quarter": "Q1", "budget": 6500000.0, "gp": 1089539.0, "gp_pct": 16.762138461538463, "pm": "BOW", "planner": "BANK", "kol_op": "FILM", "ads_opt": "PANG", "start": "2026-03-05", "end": "2026-08-31", "op_status": "เก็บเงิน 30%"}, {"no": 30, "name": "Healthy Pet Food ", "type": "Live + Production", "no_kols": 50.0, "status": "Doing", "channel": "TPM", "service": "CMP", "sale": "BEE", "quarter": "Q1", "budget": 95200.0, "gp": 25000.0, "gp_pct": 26.260504201680675, "pm": "BOW", "planner": "FJ", "kol_op": "GOLF", "ads_opt": "N/A", "start": "2026-03-06", "end": "2026-05-31", "op_status": "ออกใบเสนอราคาแล้ว"}, {"no": 31, "name": "Khaokho Talaypu (KINDEE)", "type": "Review", "no_kols": 150.0, "status": "Doing", "channel": "TPM", "service": "CMP", "sale": "NESS", "quarter": "Q1", "budget": 70000.0, "gp": 7000.0, "gp_pct": 10.0, "pm": "BOW", "planner": "WIN", "kol_op": "FILM", "ads_opt": "N/A", "start": "2026-03-11", "end": "", "op_status": "วางบิลแล้ว"}, {"no": 32, "name": "SCOPE (Mar)", "type": "ADS + Production", "no_kols": 0.0, "status": "Doing", "channel": "TPM", "service": "CMP", "sale": "OTHER", "quarter": "Q1", "budget": 30000.0, "gp": 15600.0, "gp_pct": 52.0, "pm": "BOW", "planner": "BANK", "kol_op": "N/A", "ads_opt": "KAN", "start": "2026-03-01", "end": "", "op_status": "ครบ"}, {"no": 33, "name": "ห่านคู่", "type": "ADS", "no_kols": 0.0, "status": "Doing", "channel": "TPM", "service": "MA", "sale": "OTHER", "quarter": "Q1", "budget": 240000.0, "gp": 60000.0, "gp_pct": 25.0, "pm": "BOW", "planner": "FJ", "kol_op": "N/A", "ads_opt": "THREE", "start": "2026-03-11", "end": "2026-06-30", "op_status": "วางบิลแล้ว"}, {"no": 34, "name": "Cerapure", "type": "Review", "no_kols": 150.0, "status": "Doing", "channel": "TPM", "service": "CMP", "sale": "BEE", "quarter": "Q2", "budget": 60000.0, "gp": 21000.0, "gp_pct": 35.0, "pm": "BOW", "planner": "BANK", "kol_op": "GOLF", "ads_opt": "N/A", "start": "2026-04-01", "end": "2026-04-30", "op_status": "เก็บเงิน 70%"}, {"no": 35, "name": "Ragnarok Zero: Global", "type": "ADS", "no_kols": 0.0, "status": "Hold", "channel": "GGZ", "service": "CMP", "sale": "OTHER", "quarter": "Q2", "budget": 310000.0, "gp": 67200.0, "gp_pct": 21.677419354838708, "pm": "BOW", "planner": "BANK", "kol_op": "N/A", "ads_opt": "THREE", "start": "2026-04-02", "end": "2026-05-27", "op_status": "เก็บเงิน 50%"}, {"no": 36, "name": "SPM (อาหารแมว Buddy Review)", "type": "Set Up Page FB", "no_kols": 0.0, "status": "Doing", "channel": "TPM", "service": "CMP", "sale": "TOON", "quarter": "Q1", "budget": 10000.0, "gp": 10000.0, "gp_pct": 100.0, "pm": "BOW", "planner": "WIN", "kol_op": "N/A", "ads_opt": "N/A", "start": "2026-02-01", "end": "", "op_status": "วางบิลแล้ว"}, {"no": 37, "name": "KCG (Cookie)", "type": "Review", "no_kols": 100.0, "status": "Doing", "channel": "TPM", "service": "CMP", "sale": "BEE", "quarter": "Q2", "budget": 300000.0, "gp": 60000.0, "gp_pct": 20.0, "pm": "BOW", "planner": "WIN", "kol_op": "GOLF", "ads_opt": "PANG", "start": "2026-04-03", "end": "", "op_status": "วางบิลแล้ว"}, {"no": 38, "name": "SCOPE (Apr)", "type": "ADS + Production", "no_kols": 0.0, "status": "Doing", "channel": "TPM", "service": "CMP", "sale": "OTHER", "quarter": "Q2", "budget": 30000.0, "gp": 15600.0, "gp_pct": 52.0, "pm": "BOW", "planner": "BANK", "kol_op": "N/A", "ads_opt": "KAN", "start": "2026-04-01", "end": "", "op_status": "วางบิลแล้ว"}, {"no": 39, "name": "KCG (VAN HOUTEN)", "type": "Review", "no_kols": 0.0, "status": "Doing", "channel": "TPM", "service": "CMP", "sale": "BEE", "quarter": "Q2", "budget": 200000.0, "gp": 38000.0, "gp_pct": 19.0, "pm": "BOW", "planner": "BANK", "kol_op": "FILM", "ads_opt": "N/A", "start": "2026-04-06", "end": "", "op_status": "ออกใบเสนอราคาแล้ว"}, {"no": 40, "name": "TKN Page 7-11", "type": "Review", "no_kols": 10.0, "status": "Doing", "channel": "TPM", "service": "CMP", "sale": "OTHER", "quarter": "Q2", "budget": 32000.0, "gp": 11000.0, "gp_pct": 34.375, "pm": "FILM", "planner": "FJ", "kol_op": "FILM", "ads_opt": "SUP", "start": "2026-04-07", "end": "2026-06-03", "op_status": "ออกใบเสนอราคาแล้ว"}, {"no": 41, "name": "SCOPE (Ads) May-Jul", "type": "ADS", "no_kols": 0.0, "status": "Doing", "channel": "TPM", "service": "CMP", "sale": "OTHER", "quarter": "Q2", "budget": 841122.0, "gp": 284728.32, "gp_pct": 33.85101328939203, "pm": "BOW", "planner": "FJ", "kol_op": "N/A", "ads_opt": "KAN", "start": "2026-05-01", "end": "2026-07-31", "op_status": "วางบิลแล้ว"}, {"no": 42, "name": "SCOPE (May)", "type": "ADS + Production", "no_kols": 0.0, "status": "Doing", "channel": "TPM", "service": "CMP", "sale": "OTHER", "quarter": "Q2", "budget": 30000.0, "gp": 15600.0, "gp_pct": 52.0, "pm": "BOW", "planner": "FJ", "kol_op": "N/A", "ads_opt": "KAN", "start": "2026-04-01", "end": "", "op_status": "วางบิลแล้ว"}, {"no": 43, "name": "Srifah", "type": "Review + ADS", "no_kols": 0.0, "status": "Hold", "channel": "TPS", "service": "MA", "sale": "TOON", "quarter": "Q1", "budget": 1060000.0, "gp": 159000.0, "gp_pct": 15.0, "pm": "N/A", "planner": "BANK", "kol_op": "N/A", "ads_opt": "N/A", "start": "", "end": "", "op_status": ""}, {"no": 44, "name": "Coffee Brand", "type": "Review + ADS + eComm", "no_kols": 0.0, "status": "Hold", "channel": "TPM", "service": "MA", "sale": "OTHER", "quarter": "Q1", "budget": 100000.0, "gp": 30000.0, "gp_pct": 30.0, "pm": "N/A", "planner": "BANK", "kol_op": "N/A", "ads_opt": "N/A", "start": "", "end": "", "op_status": ""}, {"no": 45, "name": "เงินกู้", "type": "ADS", "no_kols": 0.0, "status": "Hold", "channel": "TPM", "service": "MA", "sale": "OTHER", "quarter": "Q1", "budget": 100000.0, "gp": 30000.0, "gp_pct": 30.0, "pm": "N/A", "planner": "BANK", "kol_op": "N/A", "ads_opt": "N/A", "start": "", "end": "", "op_status": ""}, {"no": 46, "name": "Teenie", "type": "Review", "no_kols": 20.0, "status": "Hold", "channel": "TPM", "service": "CMP", "sale": "BEE", "quarter": "Q1", "budget": 160000.0, "gp": 41205.0, "gp_pct": 25.753124999999997, "pm": "N/A", "planner": "BANK", "kol_op": "GOLF", "ads_opt": "N/A", "start": "", "end": "", "op_status": ""}, {"no": 47, "name": "กยศ.", "type": "Review", "no_kols": 100.0, "status": "Fail", "channel": "TPM", "service": "CMP", "sale": "OTHER", "quarter": "Q1", "budget": 140000.0, "gp": 70000.0, "gp_pct": 50.0, "pm": "N/A", "planner": "BANK", "kol_op": "GOLF", "ads_opt": "N/A", "start": "", "end": "", "op_status": ""}, {"no": 48, "name": "ICC (Buddy Review)", "type": "ADS + eComm", "no_kols": 0.0, "status": "Wait", "channel": "TPM", "service": "MA", "sale": "TOON", "quarter": "Q1", "budget": 4000000.0, "gp": 399996.0, "gp_pct": 9.9999, "pm": "N/A", "planner": "BANK", "kol_op": "N/A", "ads_opt": "N/A", "start": "", "end": "", "op_status": ""}, {"no": 49, "name": "MEDMAKER", "type": "Review + ADS", "no_kols": 25.0, "status": "Wait", "channel": "TPM", "service": "MA", "sale": "TOON", "quarter": "Q2", "budget": 0.0, "gp": 225000.0, "gp_pct": 0, "pm": "N/A", "planner": "WIN", "kol_op": "FILM", "ads_opt": "N/A", "start": "", "end": "", "op_status": ""}, {"no": 50, "name": "Well-B", "type": "ADS", "no_kols": 0.0, "status": "Wait", "channel": "TPM", "service": "MA", "sale": "NESS", "quarter": "Q2", "budget": 60000.0, "gp": 0.0, "gp_pct": 0.0, "pm": "N/A", "planner": "BANK", "kol_op": "N/A", "ads_opt": "N/A", "start": "", "end": "", "op_status": ""}, {"no": 51, "name": "ICC (Buddy Review)", "type": "ADS", "no_kols": 0.0, "status": "Wait", "channel": "TPM", "service": "MA, CMP", "sale": "NESS", "quarter": "Q1", "budget": 2000000.0, "gp": 400000.0, "gp_pct": 20.0, "pm": "N/A", "planner": "FJ", "kol_op": "N/A", "ads_opt": "N/A", "start": "", "end": "", "op_status": ""}, {"no": 52, "name": "Zhi-ler Pattana", "type": "ADS", "no_kols": 0.0, "status": "Hold", "channel": "TPM", "service": "CMP", "sale": "OTHER", "quarter": "Q1", "budget": 293000.0, "gp": 0.0, "gp_pct": 0.0, "pm": "N/A", "planner": "BANK", "kol_op": "N/A", "ads_opt": "N/A", "start": "", "end": "", "op_status": ""}, {"no": 53, "name": "SET KOLs", "type": "Review + ADS", "no_kols": 30.0, "status": "Wait", "channel": "TPS", "service": "CMP", "sale": "BEE", "quarter": "Q2", "budget": 800000.0, "gp": 120000.0, "gp_pct": 15.0, "pm": "N/A", "planner": "BANK", "kol_op": "GOLF", "ads_opt": "N/A", "start": "", "end": "", "op_status": ""}, {"no": 54, "name": "CPE", "type": "ADS", "no_kols": 0.0, "status": "Doing", "channel": "TPM", "service": "CMP", "sale": "TOON", "quarter": "Q2", "budget": 130000.0, "gp": 25500.0, "gp_pct": 19.615384615384617, "pm": "N/A", "planner": "BANK", "kol_op": "N/A", "ads_opt": "N/A", "start": "2026-06-01", "end": "2026-11-30", "op_status": "ออกใบเสนอราคาแล้ว"}, {"no": 55, "name": "ARISE", "type": "SEO", "no_kols": 0.0, "status": "Doing", "channel": "TPM", "service": "MA", "sale": "POXPACK", "quarter": "Q2", "budget": 0.0, "gp": 0.0, "gp_pct": 0, "pm": "N/A", "planner": "BANK", "kol_op": "N/A", "ads_opt": "N/A", "start": "", "end": "", "op_status": ""}, {"no": 56, "name": "VETPLANET", "type": "Review", "no_kols": 40.0, "status": "Wait", "channel": "TPS", "service": "MA", "sale": "NESS", "quarter": "Q1", "budget": 120000.0, "gp": 41205.0, "gp_pct": 34.3375, "pm": "N/A", "planner": "BANK", "kol_op": "FILM", "ads_opt": "N/A", "start": "", "end": "", "op_status": ""}, {"no": 57, "name": "Alfie", "type": "Review", "no_kols": 250.0, "status": "Hold", "channel": "TPM", "service": "CMP", "sale": "BEE", "quarter": "Q1", "budget": 200000.0, "gp": 46998.0, "gp_pct": 23.499, "pm": "N/A", "planner": "BANK", "kol_op": "GOLF", "ads_opt": "N/A", "start": "", "end": "", "op_status": ""}, {"no": 58, "name": "All About You", "type": "Review", "no_kols": 50.0, "status": "Wait", "channel": "TPS", "service": "CMP", "sale": "TOON", "quarter": "Q1", "budget": 1000000.0, "gp": 150000.0, "gp_pct": 15.0, "pm": "N/A", "planner": "BANK", "kol_op": "GOLF, FILM", "ads_opt": "N/A", "start": "", "end": "", "op_status": ""}, {"no": 59, "name": "ICONIX", "type": "Review", "no_kols": 20.0, "status": "Wait", "channel": "TPM", "service": "CMP", "sale": "TOON", "quarter": "Q2", "budget": 435600.0, "gp": 68010.0, "gp_pct": 15.612947658402204, "pm": "N/A", "planner": "BANK", "kol_op": "GOLF, FILM", "ads_opt": "N/A", "start": "", "end": "", "op_status": ""}, {"no": 60, "name": "SIP Inter Pacific", "type": "Ecommerce", "no_kols": 0.0, "status": "Wait", "channel": "TPM", "service": "MA", "sale": "NESS", "quarter": "Q2", "budget": 1400000.0, "gp": 0.0, "gp_pct": 0.0, "pm": "N/A", "planner": "BANK", "kol_op": "N/A", "ads_opt": "N/A", "start": "", "end": "", "op_status": ""}, {"no": 61, "name": "TCL : Presenter", "type": "Presenter & Brand Ambassador", "no_kols": 10.0, "status": "Done", "channel": "TPM", "service": "CMP", "sale": "BEE", "quarter": "Q4", "budget": 22500.0, "gp": 22500.0, "gp_pct": 100.0, "pm": "N/A", "planner": "BANK", "kol_op": "FILM", "ads_opt": "N/A", "start": "", "end": "", "op_status": ""}, {"no": 62, "name": "Zolution", "type": "Review + ADS", "no_kols": 100.0, "status": "Fail", "channel": "TPS", "service": "MA", "sale": "TOON", "quarter": "Q4", "budget": 13800000.0, "gp": 2070000.0, "gp_pct": 15.0, "pm": "N/A", "planner": "WIN", "kol_op": "GOLF", "ads_opt": "N/A", "start": "", "end": "", "op_status": ""}, {"no": 63, "name": "Khaokho Talaypu", "type": "Review", "no_kols": 100.0, "status": "Fail", "channel": "TPM", "service": "CMP", "sale": "NESS", "quarter": "Q4", "budget": 70000.0, "gp": 10500.0, "gp_pct": 15.0, "pm": "N/A", "planner": "FJ", "kol_op": "GOLF", "ads_opt": "N/A", "start": "", "end": "", "op_status": ""}, {"no": 64, "name": "ห่านคู่", "type": "Review + ADS", "no_kols": 20.0, "status": "Fail", "channel": "TPS", "service": "CMP", "sale": "TOON", "quarter": "Q1", "budget": 170000.0, "gp": 25500.0, "gp_pct": 15.0, "pm": "N/A", "planner": "BANK", "kol_op": "GOLF", "ads_opt": "THREE", "start": "", "end": "", "op_status": ""}, {"no": 65, "name": "Popping BOBA", "type": "Review + eComm", "no_kols": 80.0, "status": "Fail", "channel": "TPS", "service": "MA", "sale": "TOON", "quarter": "Q1", "budget": 2200000.0, "gp": 330000.0, "gp_pct": 15.0, "pm": "N/A", "planner": "BANK", "kol_op": "FILM", "ads_opt": "N/A", "start": "", "end": "", "op_status": ""}, {"no": 66, "name": "Meephoom", "type": "Review", "no_kols": 80.0, "status": "Fail", "channel": "TPM", "service": "CMP", "sale": "AE", "quarter": "Q1", "budget": 0.0, "gp": 0.0, "gp_pct": 0, "pm": "N/A", "planner": "BANK", "kol_op": "FILM", "ads_opt": "KAN", "start": "", "end": "", "op_status": ""}, {"no": 67, "name": "TCL : PR", "type": "PR", "no_kols": 0.0, "status": "Fail", "channel": "TPM", "service": "CMP", "sale": "BEE", "quarter": "Q1", "budget": 2000000.0, "gp": 499995.0, "gp_pct": 24.999750000000002, "pm": "N/A", "planner": "FJ", "kol_op": "N/A", "ads_opt": "KAN, THREE", "start": "", "end": "", "op_status": ""}, {"no": 68, "name": "TCL : Ads", "type": "ADS", "no_kols": 0.0, "status": "Fail", "channel": "TPM", "service": "CMP", "sale": "BEE", "quarter": "Q1", "budget": 3223200.0, "gp": 483480.0, "gp_pct": 15.0, "pm": "N/A", "planner": "FJ", "kol_op": "N/A", "ads_opt": "KAN, THREE", "start": "", "end": "", "op_status": ""}, {"no": 69, "name": "Mansome", "type": "Review", "no_kols": 200.0, "status": "Fail", "channel": "TPM", "service": "CMP", "sale": "OTHER", "quarter": "Q2", "budget": 90000.0, "gp": 25000.0, "gp_pct": 27.77777777777778, "pm": "N/A", "planner": "BANK", "kol_op": "GOLF", "ads_opt": "N/A", "start": "", "end": "", "op_status": ""}, {"no": 70, "name": "Ready โกจิเบอร์รี่", "type": "Review", "no_kols": 50.0, "status": "Fail", "channel": "TPM", "service": "CMP", "sale": "OTHER", "quarter": "Q2", "budget": 0.0, "gp": 0.0, "gp_pct": 0, "pm": "N/A", "planner": "BANK", "kol_op": "FILM", "ads_opt": "N/A", "start": "", "end": "", "op_status": ""}, {"no": 71, "name": "TKN Have a Good Day", "type": "Review + ADS", "no_kols": 40.0, "status": "Fail", "channel": "TPS", "service": "CMP", "sale": "AE", "quarter": "Q1", "budget": 120000.0, "gp": 37500.0, "gp_pct": 31.25, "pm": "N/A", "planner": "BANK", "kol_op": "FILM", "ads_opt": "N/A", "start": "", "end": "", "op_status": ""}, {"no": 72, "name": "KCG (Sandwish ส้ม, องุ่น)", "type": "Review", "no_kols": 50.0, "status": "Fail", "channel": "TPM", "service": "CMP", "sale": "BEE", "quarter": "Q1", "budget": 200000.0, "gp": 60000.0, "gp_pct": 30.0, "pm": "N/A", "planner": "WIN", "kol_op": "FILM, GOLF", "ads_opt": "N/A", "start": "", "end": "", "op_status": ""}, {"no": 73, "name": "Berich", "type": "Review", "no_kols": 40.0, "status": "Fail", "channel": "TPS", "service": "CMP", "sale": "TOON", "quarter": "Q1", "budget": 438000.0, "gp": 65700.0, "gp_pct": 15.0, "pm": "N/A", "planner": "BANK", "kol_op": "FILM, GOLF", "ads_opt": "N/A", "start": "", "end": "", "op_status": ""}, {"no": 74, "name": "SET Streaming", "type": "Review + ADS + eComm", "no_kols": 30.0, "status": "Fail", "channel": "TPS", "service": "MA", "sale": "BEE", "quarter": "Q2", "budget": 700000.0, "gp": 154500.0, "gp_pct": 22.071428571428573, "pm": "N/A", "planner": "BANK", "kol_op": "GOLF", "ads_opt": "N/A", "start": "", "end": "", "op_status": ""}, {"no": 75, "name": "SET AomWise", "type": "Review + ADS + eComm", "no_kols": 30.0, "status": "Fail", "channel": "TPS", "service": "MA", "sale": "BEE", "quarter": "Q2", "budget": 400000.0, "gp": 99000.0, "gp_pct": 24.75, "pm": "N/A", "planner": "BANK", "kol_op": "GOLF", "ads_opt": "N/A", "start": "", "end": "", "op_status": ""}, {"no": 76, "name": "TGH (อาคเนย์)", "type": "ADS", "no_kols": 50.0, "status": "Fail", "channel": "TPS", "service": "MA", "sale": "AE", "quarter": "Q1", "budget": 2000000.0, "gp": 333330.0, "gp_pct": 16.6665, "pm": "N/A", "planner": "BANK", "kol_op": "FILM, GOLF", "ads_opt": "N/A", "start": "", "end": "", "op_status": ""}, {"no": 77, "name": "Popcorn Major", "type": "ADS", "no_kols": 0.0, "status": "Fail", "channel": "TPS", "service": "MA", "sale": "BEE", "quarter": "Q1", "budget": 90000.0, "gp": 16200.0, "gp_pct": 18.0, "pm": "N/A", "planner": "FJ", "kol_op": "N/A", "ads_opt": "N/A", "start": "", "end": "", "op_status": ""}, {"no": 78, "name": "Dermie", "type": "Review", "no_kols": 20.0, "status": "Fail", "channel": "TPS", "service": "CMP", "sale": "BEE", "quarter": "Q1", "budget": 700000.0, "gp": 122500.0, "gp_pct": 17.5, "pm": "N/A", "planner": "BANK", "kol_op": "GOLF, FILM", "ads_opt": "N/A", "start": "", "end": "", "op_status": ""}, {"no": 79, "name": "SE Life", "type": "Review + ADS", "no_kols": 50.0, "status": "Fail", "channel": "TPS", "service": "MA", "sale": "OTHER", "quarter": "Q1", "budget": 2000000.0, "gp": 360000.0, "gp_pct": 18.0, "pm": "N/A", "planner": "BANK", "kol_op": "GOLF, FILM", "ads_opt": "N/A", "start": "", "end": "", "op_status": ""}, {"no": 80, "name": "SET ต้องรอด", "type": "ADS", "no_kols": 0.0, "status": "Planning", "channel": "N/A", "service": "CMP", "sale": "BEE", "quarter": "Q2", "budget": 195000.0, "gp": 60000.0, "gp_pct": 30.76923076923077, "pm": "BOW", "planner": "BANK", "kol_op": "N/A", "ads_opt": "KAN", "start": "", "end": "", "op_status": ""}, {"no": 81, "name": "SET INVESTORY", "type": "ADS", "no_kols": 0.0, "status": "Planning", "channel": "N/A", "service": "CMP", "sale": "BEE", "quarter": "Q2", "budget": 560000.0, "gp": 100000.0, "gp_pct": 17.857142857142858, "pm": "BOW", "planner": "FJ", "kol_op": "N/A", "ads_opt": "KAN", "start": "", "end": "", "op_status": ""}, {"no": 82, "name": "SET E-Learning", "type": "ADS", "no_kols": 0.0, "status": "Planning", "channel": "N/A", "service": "CMP", "sale": "BEE", "quarter": "Q2", "budget": 700000.0, "gp": 100000.0, "gp_pct": 14.285714285714285, "pm": "BOW", "planner": "BANK", "kol_op": "N/A", "ads_opt": "KAN", "start": "", "end": "", "op_status": ""}, {"no": 83, "name": "Babylove", "type": "Review + ADS", "no_kols": 0.0, "status": "Planning", "channel": "TPS", "service": "CMP", "sale": "AE", "quarter": "Q3", "budget": 1200000.0, "gp": 200000.0, "gp_pct": 16.666666666666664, "pm": "BOW", "planner": "BANK", "kol_op": "FILM", "ads_opt": "THREE", "start": "", "end": "", "op_status": ""}, {"no": 84, "name": "SET / มารวย", "type": "", "no_kols": 0.0, "status": "", "channel": "N/A", "service": "", "sale": "N/A", "quarter": "", "budget": 0.0, "gp": 0.0, "gp_pct": 0, "pm": "BOW", "planner": "BANK", "kol_op": "N/A", "ads_opt": "THREE", "start": "", "end": "", "op_status": ""}, {"no": 85, "name": "SET  / Happy Money", "type": "", "no_kols": 0.0, "status": "", "channel": "N/A", "service": "", "sale": "N/A", "quarter": "", "budget": 0.0, "gp": 0.0, "gp_pct": 0, "pm": "BOW", "planner": "FJ", "kol_op": "N/A", "ads_opt": "THREE", "start": "", "end": "", "op_status": ""}], "ar_records": [{"section": "INTERNAL 2025", "name": "TKN : WOWCORN", "category": "Review", "revenue": 748000.0, "gp": 157500.0, "cash_in": 743238.1, "ar_pending": 4761.900000000023, "cash_out": 301300.0, "ap_pending": 289200.0, "pipeline_status": "CARRYOVER"}, {"section": "INTERNAL 2025", "name": "TKN WOWCORN", "category": "Seeding", "revenue": 30000.0, "gp": 10000.0, "cash_in": 30000.0, "ar_pending": 0.0, "cash_out": 0.0, "ap_pending": 20000.0, "pipeline_status": "CARRYOVER"}, {"section": "INTERNAL 2025", "name": "TCL", "category": "Presenter", "revenue": 22500.0, "gp": 22500.0, "cash_in": 0.0, "ar_pending": 22500.0, "cash_out": 0.0, "ap_pending": 0.0, "pipeline_status": "Doing"}, {"section": "INTERNAL 2025", "name": "กุ๊งกิ๊ง", "category": "Review", "revenue": 200000.0, "gp": 40000.0, "cash_in": 0.0, "ar_pending": 200000.0, "cash_out": 173874.0, "ap_pending": -13874.0, "pipeline_status": "Done"}, {"section": "INTERNAL 2025", "name": "Gangnam miin clinic", "category": "ADS", "revenue": 52200.0, "gp": 26720.0, "cash_in": 10200.0, "ar_pending": 42000.0, "cash_out": 0.0, "ap_pending": 25480.0, "pipeline_status": "Doing"}, {"section": "INTERNAL 2025", "name": "Healthy Pet Food", "category": "ADS", "revenue": 308000.0, "gp": 58000.0, "cash_in": 102000.0, "ar_pending": 206000.0, "cash_out": 0.0, "ap_pending": 250000.0, "pipeline_status": "Doing"}, {"section": "INTERNAL 2025", "name": "TKN (WOW Corn) Campaign", "category": "ADS", "revenue": 33000.0, "gp": 13000.0, "cash_in": 30000.0, "ar_pending": 3000.0, "cash_out": 0.0, "ap_pending": 20000.0, "pipeline_status": "Done"}, {"section": "INTERNAL 2025", "name": "marvo (รอเปลี่ยนแบรนด์)", "category": "Review", "revenue": 470000.0, "gp": 121910.0, "cash_in": 0.0, "ar_pending": 470000.0, "cash_out": 348090.0, "ap_pending": 0.0, "pipeline_status": "CARRYOVER"}, {"section": "INTERNAL 2025", "name": "marvo (รอเปลี่ยนแบรนด์)", "category": "Ads", "revenue": 1075000.0, "gp": 131250.0, "cash_in": 0.0, "ar_pending": 1075000.0, "cash_out": 0.0, "ap_pending": 338750.0, "pipeline_status": "CARRYOVER"}, {"section": "INTERNAL 2025", "name": "กุ๊งกิ๊ง", "category": "Ads", "revenue": 94000.0, "gp": 19000.0, "cash_in": 0.0, "ar_pending": 94000.0, "cash_out": 0.0, "ap_pending": 75000.0, "pipeline_status": "Done"}, {"section": "INTERNAL 2025", "name": "Usefulfood", "category": "Ads", "revenue": 1500000.0, "gp": 300000.0, "cash_in": 129800.0, "ar_pending": 1370200.0, "cash_out": 0.0, "ap_pending": 1200000.0, "pipeline_status": "CARRYOVER"}, {"section": "INTERNAL 2025", "name": "Oyama", "category": "Ads", "revenue": 864000.0, "gp": 194000.0, "cash_in": 224000.0, "ar_pending": 640000.0, "cash_out": 0.0, "ap_pending": 670000.0, "pipeline_status": "CARRYOVER"}, {"section": "INTERNAL 2025", "name": "Pilot (MA)", "category": "Ads", "revenue": 80600.0, "gp": 46000.0, "cash_in": 80600.0, "ar_pending": 0.0, "cash_out": 0.0, "ap_pending": 34600.0, "pipeline_status": "Done"}, {"section": "INTERNAL 2025", "name": "Sunleaf", "category": "Ads", "revenue": 269333.0, "gp": 96000.0, "cash_in": 64800.0, "ar_pending": 204533.0, "cash_out": 0.0, "ap_pending": 173333.0, "pipeline_status": "Doing"}, {"section": "INTERNAL 2025", "name": "Baby Love (MA)", "category": "Ads", "revenue": 879000.0, "gp": 219000.0, "cash_in": 281200.0, "ar_pending": 597800.0, "cash_out": 0.0, "ap_pending": 660000.0, "pipeline_status": "CARRYOVER"}, {"section": "INTERNAL 2025", "name": "TKN MA ", "category": "Ads", "revenue": 46800.0, "gp": 14800.0, "cash_in": 44000.0, "ar_pending": 2800.0, "cash_out": 0.0, "ap_pending": 32000.0, "pipeline_status": "CARRYOVER"}, {"section": "INTERNAL 2025", "name": "TKN (WOW Corn MA) (3 M)", "category": "Ads", "revenue": 119700.0, "gp": 41700.0, "cash_in": 53760.0, "ar_pending": 65940.0, "cash_out": 12000.0, "ap_pending": 66000.0, "pipeline_status": "CARRYOVER"}, {"section": "INTERNAL 2025", "name": "TKN Roblox", "category": "", "revenue": 5362.0, "gp": 0, "cash_in": 5362.0, "ar_pending": 0.0, "cash_out": 0.0, "ap_pending": 0.0, "pipeline_status": "CARRYOVER"}, {"section": "INTERNAL 2026", "name": "กุ๊งกิ๊ง (V.1)", "category": "Review", "revenue": 200000.0, "gp": 40000.0, "cash_in": 0.0, "ar_pending": 200000.0, "cash_out": 107420.0, "ap_pending": 52580.0, "pipeline_status": "Doing"}, {"section": "INTERNAL 2026", "name": "กุ๊งกิ๊ง (Ads)", "category": "ADS", "revenue": 17250.0, "gp": 17250.0, "cash_in": 0.0, "ar_pending": 200000.0, "cash_out": 0.0, "ap_pending": 0.0, "pipeline_status": "Doing"}, {"section": "INTERNAL 2026", "name": "Marvo [Bellotta]", "category": "Review", "revenue": 299640.0, "gp": 61240.0, "cash_in": 0.0, "ar_pending": 299640.0, "cash_out": 0.0, "ap_pending": 238400.0, "pipeline_status": "Doing"}, {"section": "INTERNAL 2026", "name": "Belly Gom", "category": "ADS", "revenue": 45600.0, "gp": 45600.0, "cash_in": 0.0, "ar_pending": 45600.0, "cash_out": 0.0, "ap_pending": 0.0, "pipeline_status": "Doing"}, {"section": "INTERNAL 2026", "name": "ยอดคุณ", "category": "ADS", "revenue": 291000.0, "gp": 291000.0, "cash_in": 0.0, "ar_pending": 291000.0, "cash_out": 0.0, "ap_pending": 0.0, "pipeline_status": "Doing"}, {"section": "INTERNAL 2026", "name": "Healthy Pet Food ", "category": "ADS", "revenue": 68000.0, "gp": 68000.0, "cash_in": 0.0, "ar_pending": 68000.0, "cash_out": 0.0, "ap_pending": 0.0, "pipeline_status": "Doing"}, {"section": "INTERNAL 2026", "name": "OYAMA", "category": "ADS", "revenue": 64667.0, "gp": 64667.0, "cash_in": 0.0, "ar_pending": 64667.0, "cash_out": 0.0, "ap_pending": 0.0, "pipeline_status": "UNMAPPED"}, {"section": "INTERNAL 2026", "name": "TCL (Old Project)", "category": "ADS", "revenue": 167400.0, "gp": 167400.0, "cash_in": 0.0, "ar_pending": 167400.0, "cash_out": 0.0, "ap_pending": 0.0, "pipeline_status": "Doing"}, {"section": "INTERNAL 2026", "name": "TCL (WOM)", "category": "ADS", "revenue": 187500.0, "gp": 187500.0, "cash_in": 0.0, "ar_pending": 187500.0, "cash_out": 0.0, "ap_pending": 0.0, "pipeline_status": "Doing"}, {"section": "INTERNAL 2026", "name": "Pilot (MA)", "category": "ADS", "revenue": 18000.0, "gp": 18000.0, "cash_in": 0.0, "ar_pending": 18000.0, "cash_out": 0.0, "ap_pending": 0.0, "pipeline_status": "Done"}, {"section": "INTERNAL 2026", "name": "Sunleaf", "category": "ADS", "revenue": 45000.0, "gp": 45000.0, "cash_in": 0.0, "ar_pending": 45000.0, "cash_out": 0.0, "ap_pending": 0.0, "pipeline_status": "Doing"}, {"section": "INTERNAL 2026", "name": "BabyLove (MA)", "category": "ADS", "revenue": 159000.0, "gp": 159000.0, "cash_in": 0.0, "ar_pending": 159000.0, "cash_out": 0.0, "ap_pending": 0.0, "pipeline_status": "Doing"}, {"section": "INTERNAL 2026", "name": "Gangnam miin clinic", "category": "ADS", "revenue": 8200.0, "gp": 8200.0, "cash_in": 0.0, "ar_pending": 8200.0, "cash_out": 0.0, "ap_pending": 0.0, "pipeline_status": "Doing"}, {"section": "INTERNAL 2026", "name": "TKN (Wow Corn) MA", "category": "ADS", "revenue": 26700.0, "gp": 26700.0, "cash_in": 0.0, "ar_pending": 26700.0, "cash_out": 0.0, "ap_pending": 0.0, "pipeline_status": "Done"}, {"section": "INTERNAL 2026", "name": "TKN (Wow Corn)", "category": "ADS", "revenue": 8000.0, "gp": 8000.0, "cash_in": 0.0, "ar_pending": 8000.0, "cash_out": 0.0, "ap_pending": 0.0, "pipeline_status": "Done"}, {"section": "INTERNAL 2026", "name": "Pejoy", "category": "Review", "revenue": 600000.0, "gp": 90000.0, "cash_in": 0.0, "ar_pending": 600000.0, "cash_out": 0.0, "ap_pending": 510000.0, "pipeline_status": "Wait"}, {"section": "INTERNAL 2026", "name": "ข้าวตราฉัตร", "category": "ADS", "revenue": 259200.0, "gp": 259200.0, "cash_in": 0.0, "ar_pending": 259200.0, "cash_out": 0.0, "ap_pending": 0.0, "pipeline_status": "Doing"}, {"section": "INTERNAL 2026", "name": "BabyLove KOL", "category": "Review", "revenue": 72000.0, "gp": 24000.0, "cash_in": 0.0, "ar_pending": 72000.0, "cash_out": 0.0, "ap_pending": 48000.0, "pipeline_status": "Doing"}, {"section": "INTERNAL 2026", "name": "Pretz", "category": "Review", "revenue": 200000.0, "gp": 46998.0, "cash_in": 0.0, "ar_pending": 200000.0, "cash_out": 0.0, "ap_pending": 153002.0, "pipeline_status": "Doing"}, {"section": "INTERNAL 2026", "name": "กุ๊งกิ๊ง (V.2)", "category": "Review", "revenue": 150000.0, "gp": 35000.0, "cash_in": 0.0, "ar_pending": 150000.0, "cash_out": 12188.0, "ap_pending": 102812.0, "pipeline_status": "Doing"}, {"section": "INTERNAL 2026", "name": "Neobun", "category": "Review + ADS", "revenue": 2000000.0, "gp": 300000.0, "cash_in": 0.0, "ar_pending": 2000000.0, "cash_out": 0.0, "ap_pending": 1700000.0, "pipeline_status": "Doing"}, {"section": "INTERNAL 2026", "name": "Neobun", "category": "ADS", "revenue": 90000.0, "gp": 13500.0, "cash_in": 0.0, "ar_pending": 90000.0, "cash_out": 0.0, "ap_pending": 76500.0, "pipeline_status": "Doing"}, {"section": "INTERNAL 2026", "name": "MUAY", "category": "ADS", "revenue": 90000.0, "gp": 13500.0, "cash_in": 0.0, "ar_pending": 90000.0, "cash_out": 0.0, "ap_pending": 76500.0, "pipeline_status": "Doing"}, {"section": "INTERNAL 2026", "name": "Healthy Pet Food ", "category": "ADS", "revenue": 102000.0, "gp": 102000.0, "cash_in": 0.0, "ar_pending": 102000.0, "cash_out": 0.0, "ap_pending": 0.0, "pipeline_status": "Doing"}, {"section": "INTERNAL 2026", "name": "TKN (MA)", "category": "ADS", "revenue": 117600.0, "gp": 117600.0, "cash_in": 0.0, "ar_pending": 117600.0, "cash_out": 0.0, "ap_pending": 0.0, "pipeline_status": "UNMAPPED"}, {"section": "EXTERNAL 2026", "name": "LINs", "category": "Review", "revenue": 100000.0, "gp": 30000.0, "cash_in": 100000.0, "ar_pending": 0.0, "cash_out": 58823.74, "ap_pending": 11176.260000000002, "pipeline_status": "Done"}, {"section": "EXTERNAL 2026", "name": "SCOPE (Ads) Feb-Apr", "category": "ADS", "revenue": 900000.0, "gp": 300000.0, "cash_in": 300000.0, "ar_pending": 600000.0, "cash_out": 328837.12, "ap_pending": 271162.88, "pipeline_status": "Done"}, {"section": "EXTERNAL 2026", "name": "SCOPE (Feb)", "category": "ADS + Production", "revenue": 30000.0, "gp": 15600.0, "cash_in": 30000.0, "ar_pending": 0.0, "cash_out": 94118.56, "ap_pending": -79718.56, "pipeline_status": "Doing"}, {"section": "EXTERNAL 2026", "name": "SPM (อาหารแมว Buddy Review)", "category": "ADS", "revenue": 299000.0, "gp": 56670.0, "cash_in": 159466.66, "ar_pending": 139533.34, "cash_out": 110618.56, "ap_pending": 131711.44, "pipeline_status": "Doing"}, {"section": "EXTERNAL 2026", "name": "TCL : KOLs", "category": "Review", "revenue": 6500000.0, "gp": 1089539.0, "cash_in": 1950000.0, "ar_pending": 4550000.0, "cash_out": 0.0, "ap_pending": 5410461.0, "pipeline_status": "Doing"}, {"section": "EXTERNAL 2026", "name": "Healthy Pet Food ", "category": "Live + Production", "revenue": 95200.0, "gp": 30000.0, "cash_in": 10200.0, "ar_pending": 85000.0, "cash_out": 0.0, "ap_pending": 65200.0, "pipeline_status": "Doing"}, {"section": "EXTERNAL 2026", "name": "Khaokho Talaypu (KINDEE)", "category": "Review", "revenue": 70000.0, "gp": 10000.0, "cash_in": 0.0, "ar_pending": 70000.0, "cash_out": 33500.0, "ap_pending": 26500.0, "pipeline_status": "Doing"}, {"section": "EXTERNAL 2026", "name": "SCOPE (Mar)", "category": "ADS + Production", "revenue": 30000.0, "gp": 15600.0, "cash_in": 30000.0, "ar_pending": 0.0, "cash_out": 0.0, "ap_pending": 14400.0, "pipeline_status": "Doing"}, {"section": "EXTERNAL 2026", "name": "ห่านคู่", "category": "ADS", "revenue": 276000.0, "gp": 51000.0, "cash_in": 0.0, "ar_pending": 276000.0, "cash_out": 0.0, "ap_pending": 225000.0, "pipeline_status": "Fail"}, {"section": "EXTERNAL 2026", "name": "Cerapure", "category": "Review", "revenue": 60000.0, "gp": 21000.0, "cash_in": 42000.0, "ar_pending": 18000.0, "cash_out": 0.0, "ap_pending": 39000.0, "pipeline_status": "Doing"}, {"section": "EXTERNAL 2026", "name": "Ragnarok Zero: Global", "category": "ADS", "revenue": 347200.0, "gp": 67200.0, "cash_in": 173600.0, "ar_pending": 173600.0, "cash_out": 0.0, "ap_pending": 280000.0, "pipeline_status": "Hold"}, {"section": "EXTERNAL 2026", "name": "SPM (อาหารแมว Buddy Review)", "category": "Set Up Page FB", "revenue": 10000.0, "gp": 10000.0, "cash_in": 0.0, "ar_pending": 10000.0, "cash_out": 0.0, "ap_pending": 0.0, "pipeline_status": "Doing"}, {"section": "EXTERNAL 2026", "name": "KCG (Cookie)", "category": "Review", "revenue": 300000.0, "gp": 60000.0, "cash_in": 0.0, "ar_pending": 300000.0, "cash_out": 0.0, "ap_pending": 240000.0, "pipeline_status": "Doing"}, {"section": "EXTERNAL 2026", "name": "SCOPE (Apr)", "category": "ADS + Production", "revenue": 30000.0, "gp": 15600.0, "cash_in": 0.0, "ar_pending": 30000.0, "cash_out": 0.0, "ap_pending": 14400.0, "pipeline_status": "Doing"}, {"section": "EXTERNAL 2026", "name": "KCG (VAN HOUTEN)", "category": "Review", "revenue": 200000.0, "gp": 38000.0, "cash_in": 0.0, "ar_pending": 200000.0, "cash_out": 0.0, "ap_pending": 162000.0, "pipeline_status": "Doing"}, {"section": "EXTERNAL 2026", "name": "TKN Page 7-11", "category": "Review", "revenue": 32000.0, "gp": 11000.0, "cash_in": 0.0, "ar_pending": 32000.0, "cash_out": 0.0, "ap_pending": 21000.0, "pipeline_status": "Doing"}, {"section": "EXTERNAL 2026", "name": "SCOPE (Ads) May-Jul", "category": "ADS", "revenue": 841122.0, "gp": 284728.0, "cash_in": 0.0, "ar_pending": 841122.0, "cash_out": 0.0, "ap_pending": 556393.68, "pipeline_status": "Doing"}, {"section": "EXTERNAL 2026", "name": "SCOPE (May)", "category": "ADS + Production", "revenue": 30000.0, "gp": 15600.0, "cash_in": 0.0, "ar_pending": 30000.0, "cash_out": 0.0, "ap_pending": 14400.0, "pipeline_status": "Doing"}, {"section": "EXTERNAL 2026", "name": "CPE", "category": "ADS", "revenue": 130000.0, "gp": 0, "cash_in": 0.0, "ar_pending": 130000.0, "cash_out": 0.0, "ap_pending": 0.0, "pipeline_status": "Doing"}], "fixed_costs": [{"code": "BHR01", "item": "เงินเดือนพนักงาน", "budget_2025": 4800000.0, "budget_2026": 3476388.0}, {"code": "BHR01", "item": "เงินเดือนพนักงาน   CEO", "budget_2025": 2038800.0, "budget_2026": 0.0}, {"code": "BHR02", "item": "ประกันสังคม", "budget_2025": 73500.0, "budget_2026": 73500.0}, {"code": "BHR03", "item": "กองทุนสำรองเลี้ยงชีพ", "budget_2025": 57000.0, "budget_2026": 0.0}, {"code": "BSC01", "item": "Share Cost Salary", "budget_2025": 608329.68, "budget_2026": 620472.0}, {"code": "BHR04", "item": "Share Cost Office Rental ค่าเช่า", "budget_2025": 1009780.0, "budget_2026": 300000.0}, {"code": "BHR05", "item": "Parking Fee", "budget_2025": 0.0, "budget_2026": 0.0}, {"code": "BHR06", "item": "Utility Expense", "budget_2025": 278520.0, "budget_2026": 69360.0}, {"code": "BHR07", "item": "Office Supply", "budget_2025": 0.0, "budget_2026": 0.0}, {"code": "BHR08", "item": "Office Maintenance", "budget_2025": 0.0, "budget_2026": 0.0}, {"code": "BHR09", "item": "New Year Party", "budget_2025": 0.0, "budget_2026": 13000.0}, {"code": "BIT01", "item": "IT", "budget_2025": 564702.71, "budget_2026": 0.0}, {"code": "BIT02", "item": "Hardware", "budget_2025": 0.0, "budget_2026": 0.0}, {"code": "BIT03", "item": "Program", "budget_2025": 0.0, "budget_2026": 384216.0}, {"code": "BIT04", "item": "Domain", "budget_2025": 0.0, "budget_2026": 0.0}, {"code": "BIT05", "item": "เช่าคอม", "budget_2025": 0.0, "budget_2026": 72000.0}, {"code": "BAC01", "item": "Accounting", "budget_2025": 75000.0, "budget_2026": 40000.0}, {"code": "BLG01", "item": "Legal", "budget_2025": 270115.61, "budget_2026": 0.0}, {"code": "BRD01", "item": "R&D", "budget_2025": 0.0, "budget_2026": 0.0}, {"code": "BPC01", "item": "Petty Cash", "budget_2025": 0.0, "budget_2026": 180000.0}, {"code": "BHR10", "item": "Employee Benefit", "budget_2025": 0.0, "budget_2026": 0.0}, {"code": "BHR11", "item": "Training", "budget_2025": 0.0, "budget_2026": 0.0}, {"code": "BHR12", "item": "Lunch", "budget_2025": 0.0, "budget_2026": 36000.0}, {"code": "BHR13", "item": "Recruitment", "budget_2025": 0.0, "budget_2026": 0.0}, {"code": "BHR14", "item": "HR Service", "budget_2025": 162500.0, "budget_2026": 102857.16}, {"code": "BPD01", "item": "Production Expense", "budget_2025": 0.0, "budget_2026": 0.0}, {"code": "BAE01", "item": "AE / SALE Expense", "budget_2025": 0.0, "budget_2026": 0.0}, {"code": "BMG01", "item": "CEO", "budget_2025": 260000.0, "budget_2026": 120000.0}, {"code": "BMG02", "item": "CEO Car", "budget_2025": 0.0, "budget_2026": 0.0}, {"code": "BMG03", "item": "CEO Office", "budget_2025": 0.0, "budget_2026": 0.0}, {"code": "BDP01", "item": "Dept", "budget_2025": 0.0, "budget_2026": 1200000.0}, {"code": "BDP02", "item": "Interest", "budget_2025": 0.0, "budget_2026": 492000.0}]};
+</script>
+<script>
+// SYD Dashboard v4 - per-Person capacity, strong fonts
+const D = window.DASHBOARD_DATA;
+const fmt = n => n >= 1e6 ? (n/1e6).toFixed(2)+'M' : n >= 1e3 ? (n/1e3).toFixed(0)+'K' : Math.round(n).toString();
+const fmtFull = n => Math.round(n).toLocaleString('en-US');
+
+Chart.defaults.font.family = "'Inter','IBM Plex Sans Thai',sans-serif";
+Chart.defaults.font.size = 12;
+Chart.defaults.font.weight = '600';
+Chart.defaults.color = '#1f1f1f';
+Chart.defaults.borderColor = 'rgba(168,149,106,0.3)';
+
+const COLORS = {
+  ink:'#0f0f0f', burgundy:'#6b2737', burgundyDark:'#4a1825', burgundyLight:'#8a3848',
+  gold:'#b8924a', goldLight:'#d4b876', goldDark:'#8a6a32',
+  champagne:'#e8dcc0', pearl:'#f5ede0', paper:'#fbfaf7',
+  green:'#2d4a3a', amber:'#a87a3a', red:'#7a2832', muted:'#5a5248'
+};
+const STATUS_COLOR = {Done:COLORS.green, Doing:COLORS.burgundy, Wait:COLORS.gold, Planning:COLORS.goldLight, Hold:COLORS.muted, Fail:COLORS.red, 'Revise Plan':COLORS.goldDark};
+const STATUS_MEANING = {
+  Done:'งานเสร็จแล้ว', Doing:'เสนองานผ่าน · กำลังทำงานอยู่',
+  Wait:'เสนองานเสร็จ · รอลูกค้า Confirm', Planning:'กำลังทำ Pitching เสนองาน',
+  Hold:'หยุดแพลน', Fail:'ลูกค้าไม่เอา · เสียโอกาส', 'Revise Plan':'ปรับแผนเสนอใหม่'
+};
+
+// Common tooltip style
+const tooltipStyle = {
+  backgroundColor:COLORS.burgundyDark, titleColor:COLORS.goldLight, bodyColor:COLORS.paper,
+  titleFont:{size:13, weight:'800', family:"'Inter',sans-serif"},
+  bodyFont:{size:12, weight:'600', family:"'Inter',sans-serif"},
+  padding:12, cornerRadius:0, displayColors:true,
+  borderColor:COLORS.gold, borderWidth:1
+};
+const legendStyle = {position:'bottom', labels:{boxWidth:14, font:{size:12, weight:'700'}, color:COLORS.ink, padding:14}};
+const gridStyle = {color:'rgba(168,149,106,0.18)'};
+
+// === STATUS LEGEND ===
+function renderStatusLegend(){
+  const statuses = ['Done','Doing','Planning','Wait','Hold','Fail'];
+  const counts = {};
+  D.pipeline.forEach(d=>{ counts[d.status] = (counts[d.status]||0)+1; });
+  let html = '';
+  statuses.forEach(s=>{
+    const cnt = counts[s] || 0;
+    const val = D.pipeline.filter(d=>d.status===s).reduce((sum,d)=>sum+d.budget, 0);
+    const cls = 'lg-' + s.toLowerCase();
+    html += `<div class="legend-item ${cls}">
+      <div class="legend-status ${cls}">${s}</div>
+      <div class="legend-meaning">${STATUS_MEANING[s]}</div>
+      <div class="legend-count">${cnt}<em>ดีล · ${fmt(val)}</em></div>
+    </div>`;
+  });
+  document.getElementById('status-legend').innerHTML = html;
+}
+
+// === TABS ===
+document.querySelectorAll('.tab').forEach(t=>{
+  t.addEventListener('click', ()=>{
+    document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));
+    document.querySelectorAll('.page').forEach(x=>x.classList.remove('active'));
+    t.classList.add('active');
+    document.getElementById('page-'+t.dataset.page).classList.add('active');
+    window.scrollTo({top:0, behavior:'smooth'});
+  });
+});
+
+// === FILTERS ===
+document.querySelectorAll('.chip-group').forEach(group=>{
+  group.addEventListener('click', e=>{
+    if(!e.target.classList.contains('chip')) return;
+    group.querySelectorAll('.chip').forEach(c=>c.classList.remove('active'));
+    e.target.classList.add('active');
+    const gname = group.dataset.filterGroup;
+    if(gname && gname.startsWith('finance')) renderFinancePage();
+    else if(gname && gname.startsWith('team')) renderTeamPage();
+  });
+});
+function getFilter(groupName){
+  const g = document.querySelector(`[data-filter-group="${groupName}"]`);
+  if(!g) return 'all';
+  const active = g.querySelector('.chip.active');
+  return active ? active.dataset.filter : 'all';
+}
+
+function activeOnly(records){ return records.filter(d=>d.status==='Doing'||d.status==='Done'); }
+function collectableAR_all(){ return D.ar_records.filter(d=>['Doing','Done','CARRYOVER'].includes(d.pipeline_status)); }
+function collectableAR(){ return collectableAR_all().filter(d=>d.ar_pending > 0); }
+
+// === FINANCE PAGE ===
+let financeCharts = {};
+function applyFinanceFilter(records){
+  const q = getFilter('finance-quarter');
+  const s = getFilter('finance-service');
+  return records.filter(d=>{
+    if(q!=='all' && d.quarter!==q) return false;
+    if(s!=='all'){
+      if(s==='CMP' && !d.service.includes('CMP')) return false;
+      if(s==='MA' && d.service !== 'MA') return false;
+    }
+    return true;
+  });
+}
+
+function renderFinanceKPIs(){
+  const filtered = applyFinanceFilter(D.pipeline);
+  const activeF = activeOnly(filtered);
+  const realRev = activeF.reduce((s,d)=>s+d.budget, 0);
+  const realGp = activeF.reduce((s,d)=>s+d.gp, 0);
+  const gpMargin = realRev > 0 ? realGp/realRev : 0;
+  const arRel = collectableAR_all();
+  const totalGot = arRel.reduce((s,d)=>s+d.cash_in, 0);
+  const totalAR = arRel.reduce((s,d)=>s+d.ar_pending, 0);
+  const totalPaid = arRel.reduce((s,d)=>s+d.cash_out, 0);
+  const fixedCost2026 = D.fixed_costs.reduce((s,d)=>s+d.budget_2026, 0);
+  const cashOnHand = totalGot - totalPaid;
+  const runway = (fixedCost2026/12) > 0 ? cashOnHand / (fixedCost2026/12) : 0;
+  const q = getFilter('finance-quarter');
+  const s = getFilter('finance-service');
+  const filterBadge = (q==='all'?'ALL Q':q) + ' · ' + (s==='all'?'ALL SVC':s);
+
+  document.getElementById('finance-kpis').innerHTML = `
+    <div class="kpi">
+      <div class="kpi-label">Real Revenue · Doing+Done</div>
+      <div class="kpi-value">${fmt(realRev)}<span class="kpi-trend trend-neutral">${filterBadge}</span></div>
+      <div class="kpi-sub">${activeF.length} active deals</div>
+    </div>
+    <div class="kpi">
+      <div class="kpi-label">Real GP · After Cost</div>
+      <div class="kpi-value">${fmt(realGp)}</div>
+      <div class="kpi-sub">${(gpMargin*100).toFixed(1)}% blended margin</div>
+    </div>
+    <div class="kpi kpi-warn">
+      <div class="kpi-label">AR Outstanding</div>
+      <div class="kpi-value warn">${fmt(totalAR)}</div>
+      <div class="kpi-sub">เงินค้างเก็บ · Doing+Done + 2025</div>
+    </div>
+    <div class="kpi">
+      <div class="kpi-label">Cash on Hand · Runway</div>
+      <div class="kpi-value">${fmt(cashOnHand)}</div>
+      <div class="kpi-sub">≈ ${runway.toFixed(1)} เดือน · In (${fmt(totalGot)}) − Out (${fmt(totalPaid)})</div>
+    </div>
+  `;
+  const badge = document.getElementById('ar-total-badge');
+  if(badge) badge.textContent = `${fmt(totalAR)} ค้างเก็บ`;
+  document.getElementById('finance-bottom-line').innerHTML = 
+    `รายได้จริงจากดีลที่ทำอยู่ <em>${fmt(realRev)}</em> ยังมีเงินค้างเก็บอีก <em>${fmt(totalAR)}</em> — ถ้าเก็บได้แค่ครึ่ง runway ขยายจาก ${runway.toFixed(1)} เดือนเป็น ${(runway + totalAR*0.5/(fixedCost2026/12)).toFixed(0)}+ เดือนทันที`;
+}
+
+function renderMonthlyRev(){
+  const filtered = applyFinanceFilter(D.pipeline);
+  const active = activeOnly(filtered);
+  const months = ['2026-01','2026-02','2026-03','2026-04','2026-05','2026-06','2026-07','2026-08','2026-09','2026-10','2026-11','2026-12'];
+  const labels = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  const rev = months.map(()=>0);
+  const gp = months.map(()=>0);
+  active.forEach(d=>{
+    if(!d.start || !d.end || d.budget<=0) return;
+    const start = new Date(d.start), end = new Date(d.end);
+    const hits = [];
+    let cur = new Date(start.getFullYear(), start.getMonth(), 1);
+    while(cur <= end){
+      const key = `${cur.getFullYear()}-${String(cur.getMonth()+1).padStart(2,'0')}`;
+      if(months.includes(key)) hits.push(months.indexOf(key));
+      cur = new Date(cur.getFullYear(), cur.getMonth()+1, 1);
+    }
+    if(hits.length>0){
+      const per = d.budget/hits.length;
+      const perGp = d.gp/hits.length;
+      hits.forEach(i=>{ rev[i]+=per; gp[i]+=perGp; });
+    }
+  });
+  if(financeCharts.monthly) financeCharts.monthly.destroy();
+  financeCharts.monthly = new Chart(document.getElementById('ch-monthly-rev'), {
+    type:'bar',
+    data:{labels, datasets:[
+      {label:'Revenue', data:rev, backgroundColor:COLORS.burgundy, borderRadius:0},
+      {label:'GP', data:gp, backgroundColor:COLORS.gold, borderRadius:0}
+    ]},
+    options:{responsive:true, maintainAspectRatio:false,
+      plugins:{legend:legendStyle, tooltip:{...tooltipStyle, callbacks:{label:c=>`${c.dataset.label}: ${fmtFull(c.raw)} THB`}}},
+      scales:{y:{ticks:{callback:v=>fmt(v), color:COLORS.muted, font:{weight:'700'}}, grid:gridStyle},
+        x:{grid:{display:false}, ticks:{color:COLORS.ink, font:{weight:'700'}}}}}
+  });
+}
+
+function renderCashPosition(){
+  const arRel = collectableAR_all();
+  const totalGot = arRel.reduce((s,d)=>s+d.cash_in, 0);
+  const totalAR = arRel.reduce((s,d)=>s+d.ar_pending, 0);
+  const totalPaid = arRel.reduce((s,d)=>s+d.cash_out, 0);
+  const totalAP = arRel.reduce((s,d)=>s+d.ap_pending, 0);
+  if(financeCharts.cash) financeCharts.cash.destroy();
+  financeCharts.cash = new Chart(document.getElementById('ch-cash-position'), {
+    type:'bar',
+    data:{labels:['Cash In','AR Pending','Cash Out','AP Pending'],
+      datasets:[{data:[totalGot, totalAR, totalPaid, totalAP],
+        backgroundColor:[COLORS.green, COLORS.gold, COLORS.burgundy, COLORS.red], borderRadius:0}]},
+    options:{responsive:true, maintainAspectRatio:false, indexAxis:'y',
+      plugins:{legend:{display:false}, tooltip:{...tooltipStyle, callbacks:{label:c=>`${fmtFull(c.raw)} THB`}}},
+      scales:{x:{ticks:{callback:v=>fmt(v), color:COLORS.muted, font:{weight:'700'}}, grid:gridStyle},
+        y:{grid:{display:false}, ticks:{color:COLORS.ink, font:{weight:'800', size:13}}}}}
+  });
+}
+
+function renderCostCompare(){
+  const grouped = {};
+  D.fixed_costs.forEach(c=>{
+    const key = c.item.length>22 ? c.item.substring(0,22)+'…' : c.item;
+    grouped[key] = {y25:c.budget_2025, y26:c.budget_2026};
+  });
+  const sorted = Object.entries(grouped).sort((a,b)=>(b[1].y25+b[1].y26)-(a[1].y25+a[1].y26)).slice(0,10);
+  if(financeCharts.cost) financeCharts.cost.destroy();
+  financeCharts.cost = new Chart(document.getElementById('ch-cost-compare'), {
+    type:'bar',
+    data:{labels:sorted.map(x=>x[0]),
+      datasets:[
+        {label:'2025', data:sorted.map(x=>x[1].y25), backgroundColor:COLORS.champagne, borderRadius:0, borderColor:COLORS.gold, borderWidth:1},
+        {label:'2026', data:sorted.map(x=>x[1].y26), backgroundColor:COLORS.burgundy, borderRadius:0}
+      ]},
+    options:{responsive:true, maintainAspectRatio:false, indexAxis:'y',
+      plugins:{legend:legendStyle, tooltip:{...tooltipStyle, callbacks:{label:c=>`${c.dataset.label}: ${fmtFull(c.raw)} THB`}}},
+      scales:{x:{ticks:{callback:v=>fmt(v), color:COLORS.muted, font:{weight:'700'}}, grid:gridStyle},
+        y:{grid:{display:false}, ticks:{font:{size:11, weight:'700'}, color:COLORS.ink}}}}
+  });
+}
+
+function renderGPService(){
+  const filtered = applyFinanceFilter(D.pipeline);
+  const active = activeOnly(filtered);
+  const data = ['CMP','MA'].map(svc=>{
+    const subset = active.filter(d=>{
+      if(svc==='CMP') return d.service.includes('CMP');
+      if(svc==='MA') return d.service==='MA';
+    });
+    const rev = subset.reduce((s,d)=>s+d.budget,0);
+    const gp = subset.reduce((s,d)=>s+d.gp,0);
+    return {svc, rev, gp, margin: rev>0?gp/rev:0};
+  });
+  if(financeCharts.gpsvc) financeCharts.gpsvc.destroy();
+  financeCharts.gpsvc = new Chart(document.getElementById('ch-gp-service'), {
+    type:'bar',
+    data:{labels:data.map(d=>d.svc),
+      datasets:[
+        {label:'Revenue', data:data.map(d=>d.rev), backgroundColor:COLORS.burgundy, borderRadius:0, yAxisID:'y'},
+        {label:'GP', data:data.map(d=>d.gp), backgroundColor:COLORS.gold, borderRadius:0, yAxisID:'y'},
+        {label:'GP%', data:data.map(d=>d.margin*100), type:'line', borderColor:COLORS.goldDark, backgroundColor:COLORS.goldDark, yAxisID:'y1', tension:0.3, pointRadius:7, borderWidth:3}
+      ]},
+    options:{responsive:true, maintainAspectRatio:false,
+      plugins:{legend:legendStyle, tooltip:{...tooltipStyle, callbacks:{label:c=>c.dataset.label==='GP%'?`${c.dataset.label}: ${c.raw.toFixed(1)}%`:`${c.dataset.label}: ${fmtFull(c.raw)} THB`}}},
+      scales:{y:{ticks:{callback:v=>fmt(v), color:COLORS.muted, font:{weight:'700'}}, grid:gridStyle, position:'left'},
+        y1:{position:'right', ticks:{callback:v=>v+'%', color:COLORS.muted, font:{weight:'700'}}, grid:{display:false}, max:100},
+        x:{grid:{display:false}, ticks:{color:COLORS.ink, font:{weight:'800', size:13}}}}}
+  });
+}
+
+function renderARTable(){
+  const sorted = [...collectableAR()].sort((a,b)=>b.ar_pending-a.ar_pending).slice(0,15);
+  if(sorted.length === 0){ document.getElementById('tbl-ar').innerHTML = '<thead><tr><th>No data</th></tr></thead>'; return; }
+  const max = Math.max(...sorted.map(d=>d.ar_pending));
+  let html = `<thead><tr><th>Project</th><th>Section</th><th>Status</th><th>Category</th><th class="num">Revenue</th><th class="num">Got</th><th class="num">AR Outstanding</th><th>Visual</th></tr></thead><tbody>`;
+  sorted.forEach(d=>{
+    const pct = (d.ar_pending/max*100).toFixed(0);
+    const statusPill = d.pipeline_status === 'CARRYOVER' 
+      ? '<span class="pill pill-hold">2025 carry</span>'
+      : `<span class="pill pill-${d.pipeline_status.toLowerCase()}">${d.pipeline_status}</span>`;
+    html += `<tr>
+      <td><strong>${d.name}</strong></td>
+      <td class="tag" style="color:${d.section.includes('2025')?COLORS.red:COLORS.muted}">${d.section}</td>
+      <td>${statusPill}</td>
+      <td class="tag">${d.category}</td>
+      <td class="num">${fmtFull(d.revenue)}</td>
+      <td class="num">${fmtFull(d.cash_in)}</td>
+      <td class="num" style="font-weight:800;color:${COLORS.burgundy}">${fmtFull(d.ar_pending)}</td>
+      <td class="bar-cell"><div class="bar" style="width:${pct}%"></div><div class="label">${pct}%</div></td>
+    </tr>`;
+  });
+  html += '</tbody>';
+  document.getElementById('tbl-ar').innerHTML = html;
+}
+
+function renderARAPSection(){
+  const sections = ['INTERNAL 2025','INTERNAL 2026','EXTERNAL 2026'];
+  const arData = sections.map(s=>collectableAR_all().filter(d=>d.section===s).reduce((sum,d)=>sum+d.ar_pending,0));
+  const apData = sections.map(s=>collectableAR_all().filter(d=>d.section===s).reduce((sum,d)=>sum+d.ap_pending,0));
+  if(financeCharts.arsec) financeCharts.arsec.destroy();
+  financeCharts.arsec = new Chart(document.getElementById('ch-ar-section'), {
+    type:'doughnut',
+    data:{labels:sections, datasets:[{data:arData, backgroundColor:[COLORS.burgundy, COLORS.gold, COLORS.champagne], borderColor:COLORS.paper, borderWidth:3}]},
+    options:{responsive:true, maintainAspectRatio:false,
+      plugins:{legend:{...legendStyle, labels:{...legendStyle.labels, font:{size:11, weight:'700'}}}, tooltip:{...tooltipStyle, callbacks:{label:c=>`${c.label}: ${fmtFull(c.raw)} THB`}}}}
+  });
+  if(financeCharts.apsec) financeCharts.apsec.destroy();
+  financeCharts.apsec = new Chart(document.getElementById('ch-ap-section'), {
+    type:'doughnut',
+    data:{labels:sections, datasets:[{data:apData, backgroundColor:[COLORS.burgundyDark, COLORS.muted, COLORS.goldDark], borderColor:COLORS.paper, borderWidth:3}]},
+    options:{responsive:true, maintainAspectRatio:false,
+      plugins:{legend:{...legendStyle, labels:{...legendStyle.labels, font:{size:11, weight:'700'}}}, tooltip:{...tooltipStyle, callbacks:{label:c=>`${c.label}: ${fmtFull(c.raw)} THB`}}}}
+  });
+}
+
+function renderFinancePage(){
+  renderFinanceKPIs(); renderMonthlyRev(); renderCashPosition();
+  renderCostCompare(); renderGPService(); renderARTable(); renderARAPSection();
+}
+
+// === TEAM PAGE ===
+let teamCharts = {};
+function applyTeamFilter(records){
+  const sale = getFilter('team-sale');
+  const q = getFilter('team-quarter');
+  return records.filter(d=>{
+    if(sale!=='all' && d.sale!==sale) return false;
+    if(q!=='all' && d.quarter!==q) return false;
+    return true;
+  });
+}
+
+function renderTeamKPIs(){
+  const filtered = applyTeamFilter(D.pipeline);
+  const active = activeOnly(filtered);
+  const totalKOLs = filtered.reduce((s,d)=>s+d.no_kols, 0);
+  const won = filtered.filter(d=>d.status==='Doing'||d.status==='Done').length;
+  const lost = filtered.filter(d=>d.status==='Fail').length;
+  const winRate = (won+lost)>0 ? won/(won+lost) : 0;
+  
+  // Per-person concentration (using PM as primary indicator)
+  const pmGroups = {};
+  active.forEach(d=>{ if(d.pm!=='N/A') pmGroups[d.pm] = (pmGroups[d.pm]||0)+1; });
+  const topPM = Object.entries(pmGroups).sort((a,b)=>b[1]-a[1])[0];
+  const totalActive = active.length;
+  const pmConc = topPM && totalActive ? Math.round(topPM[1]/totalActive*100) : 0;
+
+  document.getElementById('team-kpis').innerHTML = `
+    <div class="kpi">
+      <div class="kpi-label">Total Deals (Filtered)</div>
+      <div class="kpi-value">${filtered.length}</div>
+      <div class="kpi-sub">${active.length} active · ${lost} lost</div>
+    </div>
+    <div class="kpi">
+      <div class="kpi-label">Win Rate</div>
+      <div class="kpi-value ${winRate>=0.7?'good':winRate>=0.5?'warn':'danger'}">${(winRate*100).toFixed(0)}%</div>
+      <div class="kpi-sub">Won (${won}) ÷ (Won + Lost ${lost})</div>
+    </div>
+    <div class="kpi">
+      <div class="kpi-label">KOLs Managed (Total)</div>
+      <div class="kpi-value">${fmt(totalKOLs)}</div>
+      <div class="kpi-sub">cumulative · ดีลที่ผ่านมือ</div>
+    </div>
+    <div class="kpi kpi-warn">
+      <div class="kpi-label">Top PM Concentration</div>
+      <div class="kpi-value danger">${pmConc}%</div>
+      <div class="kpi-sub">${topPM ? topPM[0]+' · '+topPM[1]+'/'+totalActive+' active' : '—'}</div>
+    </div>
+  `;
+  document.getElementById('team-bottom-line').innerHTML = 
+    `PM <em>${topPM ? topPM[0]:'—'}</em> ถือดีล Active ${topPM?topPM[1]:0} ดีล คิดเป็น <em>${pmConc}%</em> ของ workload — Bus Factor = 1 คือความเสี่ยงระดับธุรกิจ`;
+}
+
+function getSalesStats(records){
+  const sales = [...new Set(records.map(d=>d.sale))];
+  return sales.map(s=>{
+    const deals = records.filter(d=>d.sale===s);
+    const done = deals.filter(d=>d.status==='Done').length;
+    const doing = deals.filter(d=>d.status==='Doing').length;
+    const wait = deals.filter(d=>d.status==='Wait').length;
+    const planning = deals.filter(d=>d.status==='Planning').length;
+    const hold = deals.filter(d=>d.status==='Hold').length;
+    const fail = deals.filter(d=>d.status==='Fail').length;
+    const won = done+doing;
+    const winRate = (won+fail)>0 ? won/(won+fail) : 0;
+    const realRev = deals.filter(d=>d.status==='Doing'||d.status==='Done').reduce((sum,d)=>sum+d.budget,0);
+    const realGp = deals.filter(d=>d.status==='Doing'||d.status==='Done').reduce((sum,d)=>sum+d.gp,0);
+    const pipeline = deals.filter(d=>d.status==='Wait'||d.status==='Planning').reduce((sum,d)=>sum+d.budget,0);
+    const holdVal = deals.filter(d=>d.status==='Hold').reduce((sum,d)=>sum+d.budget,0);
+    const lostVal = deals.filter(d=>d.status==='Fail').reduce((sum,d)=>sum+d.budget,0);
+    const kols = deals.reduce((sum,d)=>sum+d.no_kols,0);
+    const wastedKols = deals.filter(d=>d.status==='Fail').reduce((sum,d)=>sum+d.no_kols,0);
+    return {sale:s, total:deals.length, done, doing, wait, planning, hold, fail, winRate, realRev, realGp, pipeline, holdVal, lostVal, kols, wastedKols, margin: realRev>0?realGp/realRev:0};
+  }).sort((a,b)=>b.realRev-a.realRev);
+}
+
+function renderSaleWinRate(){
+  const filtered = applyTeamFilter(D.pipeline);
+  const stats = getSalesStats(filtered).filter(s=>s.total>=1);
+  if(teamCharts.winrate) teamCharts.winrate.destroy();
+  teamCharts.winrate = new Chart(document.getElementById('ch-sale-winrate'),{
+    type:'bar',
+    data:{labels:stats.map(s=>s.sale),
+      datasets:[{label:'Win Rate %', data:stats.map(s=>(s.winRate*100).toFixed(1)),
+        backgroundColor:stats.map(s=>s.winRate>=0.7?COLORS.green:s.winRate>=0.5?COLORS.gold:COLORS.red), borderRadius:0}]},
+    options:{responsive:true, maintainAspectRatio:false,
+      plugins:{legend:{display:false}, tooltip:{...tooltipStyle, callbacks:{label:c=>`Win Rate: ${c.raw}%`}}},
+      scales:{y:{max:100, ticks:{callback:v=>v+'%', color:COLORS.muted, font:{weight:'700'}}, grid:gridStyle},
+        x:{grid:{display:false}, ticks:{color:COLORS.ink, font:{weight:'800', size:13}}}}}
+  });
+}
+
+function renderSaleValue(){
+  const filtered = applyTeamFilter(D.pipeline);
+  const stats = getSalesStats(filtered);
+  if(teamCharts.salevalue) teamCharts.salevalue.destroy();
+  teamCharts.salevalue = new Chart(document.getElementById('ch-sale-value'),{
+    type:'bar',
+    data:{labels:stats.map(s=>s.sale),
+      datasets:[
+        {label:'Won (Real Rev)', data:stats.map(s=>s.realRev), backgroundColor:COLORS.green, borderRadius:0},
+        {label:'Pipeline', data:stats.map(s=>s.pipeline), backgroundColor:COLORS.gold, borderRadius:0},
+        {label:'Lost', data:stats.map(s=>s.lostVal), backgroundColor:COLORS.red, borderRadius:0}
+      ]},
+    options:{responsive:true, maintainAspectRatio:false,
+      plugins:{legend:legendStyle, tooltip:{...tooltipStyle, callbacks:{label:c=>`${c.dataset.label}: ${fmtFull(c.raw)} THB`}}},
+      scales:{y:{ticks:{callback:v=>fmt(v), color:COLORS.muted, font:{weight:'700'}}, grid:gridStyle},
+        x:{grid:{display:false}, ticks:{color:COLORS.ink, font:{weight:'800', size:13}}}}}
+  });
+}
+
+function renderSalesTable(){
+  const filtered = applyTeamFilter(D.pipeline);
+  const stats = getSalesStats(filtered);
+  let html = `<thead><tr>
+    <th>Sale</th><th class="num">Total</th>
+    <th class="num">Done</th><th class="num">Doing</th><th class="num">Wait</th>
+    <th class="num">Plan</th><th class="num">Hold</th><th class="num">Fail</th>
+    <th class="num">Win Rate</th><th class="num">Real Rev</th>
+    <th class="num">GP%</th><th class="num">Pipeline</th><th class="num">Lost</th><th class="num">KOLs</th>
+  </tr></thead><tbody>`;
+  stats.forEach(s=>{
+    html += `<tr>
+      <td><strong>${s.sale}</strong></td><td class="num">${s.total}</td>
+      <td class="num">${s.done?'<span class="pill pill-done">'+s.done+'</span>':'—'}</td>
+      <td class="num">${s.doing?'<span class="pill pill-doing">'+s.doing+'</span>':'—'}</td>
+      <td class="num">${s.wait?'<span class="pill pill-wait">'+s.wait+'</span>':'—'}</td>
+      <td class="num">${s.planning?'<span class="pill pill-planning">'+s.planning+'</span>':'—'}</td>
+      <td class="num">${s.hold?'<span class="pill pill-hold">'+s.hold+'</span>':'—'}</td>
+      <td class="num">${s.fail?'<span class="pill pill-fail">'+s.fail+'</span>':'—'}</td>
+      <td class="num" style="color:${s.winRate>=0.7?COLORS.green:s.winRate>=0.5?COLORS.goldDark:COLORS.red};font-weight:800">${(s.winRate*100).toFixed(0)}%</td>
+      <td class="num">${fmtFull(s.realRev)}</td>
+      <td class="num">${(s.margin*100).toFixed(1)}%</td>
+      <td class="num">${fmtFull(s.pipeline)}</td>
+      <td class="num" style="color:${COLORS.red}">${fmtFull(s.lostVal)}</td>
+      <td class="num">${fmtFull(s.kols)}</td>
+    </tr>`;
+  });
+  html += '</tbody>';
+  document.getElementById('tbl-sales').innerHTML = html;
+}
+
+function renderPMWorkload(){
+  const filtered = applyTeamFilter(D.pipeline);
+  const active = activeOnly(filtered);
+  const pms = [...new Set(active.map(d=>d.pm))].filter(p=>p!=='N/A');
+  const stats = pms.map(pm=>{
+    const subset = active.filter(d=>d.pm===pm);
+    return {pm, deals:subset.length, revenue:subset.reduce((s,d)=>s+d.budget,0)};
+  }).sort((a,b)=>b.deals-a.deals);
+  if(teamCharts.pm) teamCharts.pm.destroy();
+  teamCharts.pm = new Chart(document.getElementById('ch-pm-workload'),{
+    type:'bar',
+    data:{labels:stats.map(s=>s.pm),
+      datasets:[
+        {label:'Active Deals', data:stats.map(s=>s.deals), backgroundColor:COLORS.burgundy, yAxisID:'y', borderRadius:0},
+        {label:'Revenue (M)', data:stats.map(s=>s.revenue/1e6), backgroundColor:COLORS.gold, yAxisID:'y1', borderRadius:0}
+      ]},
+    options:{responsive:true, maintainAspectRatio:false,
+      plugins:{legend:legendStyle, tooltip:{...tooltipStyle, callbacks:{label:c=>c.dataset.label==='Revenue (M)'?`${c.raw.toFixed(2)} M THB`:`${c.raw} deals`}}},
+      scales:{
+        y:{position:'left', title:{display:true, text:'Deals', color:COLORS.muted, font:{weight:'700'}}, grid:gridStyle, ticks:{color:COLORS.muted, font:{weight:'700'}}},
+        y1:{position:'right', title:{display:true, text:'Revenue (M)', color:COLORS.muted, font:{weight:'700'}}, grid:{display:false}, ticks:{color:COLORS.muted, font:{weight:'700'}}},
+        x:{grid:{display:false}, ticks:{color:COLORS.ink, font:{weight:'800', size:13}}}
+      }}
+  });
+}
+
+function renderPlannerWorkload(){
+  const filtered = applyTeamFilter(D.pipeline);
+  const active = activeOnly(filtered);
+  const planners = [...new Set(active.map(d=>d.planner))].filter(p=>p!=='N/A');
+  const stats = planners.map(pl=>{
+    const subset = active.filter(d=>d.planner===pl);
+    return {pl, deals:subset.length, revenue:subset.reduce((s,d)=>s+d.budget,0)};
+  }).sort((a,b)=>b.deals-a.deals);
+  if(teamCharts.planner) teamCharts.planner.destroy();
+  teamCharts.planner = new Chart(document.getElementById('ch-planner-workload'),{
+    type:'bar',
+    data:{labels:stats.map(s=>s.pl),
+      datasets:[
+        {label:'Active Deals', data:stats.map(s=>s.deals), backgroundColor:COLORS.burgundyLight, yAxisID:'y', borderRadius:0},
+        {label:'Revenue (M)', data:stats.map(s=>s.revenue/1e6), backgroundColor:COLORS.goldDark, yAxisID:'y1', borderRadius:0}
+      ]},
+    options:{responsive:true, maintainAspectRatio:false,
+      plugins:{legend:legendStyle, tooltip:{...tooltipStyle, callbacks:{label:c=>c.dataset.label==='Revenue (M)'?`${c.raw.toFixed(2)} M THB`:`${c.raw} deals`}}},
+      scales:{
+        y:{position:'left', title:{display:true, text:'Deals', color:COLORS.muted, font:{weight:'700'}}, grid:gridStyle, ticks:{color:COLORS.muted, font:{weight:'700'}}},
+        y1:{position:'right', title:{display:true, text:'Revenue (M)', color:COLORS.muted, font:{weight:'700'}}, grid:{display:false}, ticks:{color:COLORS.muted, font:{weight:'700'}}},
+        x:{grid:{display:false}, ticks:{color:COLORS.ink, font:{weight:'800', size:13}}}
+      }}
+  });
+}
+
+function renderKOLTable(){
+  const filtered = applyTeamFilter(D.pipeline);
+  const active = activeOnly(filtered);
+  const ops = [...new Set(active.map(d=>d.kol_op))].filter(o=>o!=='N/A');
+  const stats = ops.map(op=>{
+    const subset = active.filter(d=>d.kol_op===op);
+    return {op, deals:subset.length, revenue:subset.reduce((s,d)=>s+d.budget,0), kols:subset.reduce((s,d)=>s+d.no_kols,0)};
+  }).sort((a,b)=>b.kols-a.kols);
+  if(stats.length === 0){ document.getElementById('tbl-kol').innerHTML = '<thead><tr><th>No data</th></tr></thead>'; return; }
+  let html = `<thead><tr><th>KOL Operator</th><th class="num">Deals</th><th class="num">Revenue</th><th class="num"># KOLs</th><th class="num">KOL/Deal</th></tr></thead><tbody>`;
+  stats.forEach(s=>{
+    html += `<tr><td><strong>${s.op}</strong></td><td class="num">${s.deals}</td><td class="num">${fmtFull(s.revenue)}</td>
+      <td class="num" style="font-weight:800;color:${COLORS.burgundy}">${fmtFull(s.kols)}</td>
+      <td class="num">${(s.kols/s.deals).toFixed(0)}</td></tr>`;
+  });
+  html += '</tbody>';
+  document.getElementById('tbl-kol').innerHTML = html;
+}
+
+function renderADSTable(){
+  const filtered = applyTeamFilter(D.pipeline);
+  const active = activeOnly(filtered);
+  const ops = [...new Set(active.map(d=>d.ads_opt))].filter(o=>o!=='N/A');
+  const stats = ops.map(op=>{
+    const subset = active.filter(d=>d.ads_opt===op);
+    return {op, deals:subset.length, revenue:subset.reduce((s,d)=>s+d.budget,0), gp:subset.reduce((s,d)=>s+d.gp,0)};
+  }).sort((a,b)=>b.revenue-a.revenue);
+  if(stats.length === 0){ document.getElementById('tbl-ads').innerHTML = '<thead><tr><th>No data</th></tr></thead>'; return; }
+  let html = `<thead><tr><th>ADS Opt</th><th class="num">Deals</th><th class="num">Revenue</th><th class="num">GP</th></tr></thead><tbody>`;
+  stats.forEach(s=>{
+    html += `<tr><td><strong>${s.op}</strong></td><td class="num">${s.deals}</td><td class="num">${fmtFull(s.revenue)}</td><td class="num">${fmtFull(s.gp)}</td></tr>`;
+  });
+  html += '</tbody>';
+  document.getElementById('tbl-ads').innerHTML = html;
+}
+
+// === CAPACITY BY PERSON (dedup across roles) ===
+function getCapacityByPerson(){
+  const filtered = applyTeamFilter(D.pipeline);
+  const active = activeOnly(filtered);
+  // For each person across all roles, count distinct deals they touch
+  const personDeals = {};
+  active.forEach(d=>{
+    [d.pm, d.planner, d.kol_op, d.ads_opt].forEach(name=>{
+      if(!name || name === 'N/A') return;
+      // Skip multi-name entries with commas
+      if(name.includes(',')) return;
+      if(!personDeals[name]) personDeals[name] = new Set();
+      personDeals[name].add(d.no); // dedup by deal no
+    });
+  });
+  const HOURS_PER_DEAL_PER_WEEK = 5;
+  const CAP_PER_WEEK = 40;
+  const rows = Object.entries(personDeals).map(([name, dealSet])=>{
+    const deals = dealSet.size;
+    const hPerWeek = deals * HOURS_PER_DEAL_PER_WEEK;
+    const hPerDay = hPerWeek/5;
+    const util = hPerWeek/CAP_PER_WEEK;
+    // Get revenue contribution
+    const dealList = active.filter(d=>dealSet.has(d.no));
+    const revenue = dealList.reduce((s,d)=>s+d.budget,0);
+    const kols = dealList.reduce((s,d)=>s+d.no_kols,0);
+    return {name, deals, hPerDay, hPerWeek, hPerMonth:hPerWeek*4.3, util, revenue, kols};
+  });
+  rows.sort((a,b)=>b.util-a.util);
+  return rows;
+}
+
+function renderCapacityByPersonChart(){
+  const rows = getCapacityByPerson();
+  if(rows.length === 0) return;
+  const labels = rows.map(r=>r.name);
+  const data = rows.map(r=>r.util*100);
+  const bgColors = rows.map(r=>r.util>=1.5?COLORS.red:r.util>=1?COLORS.amber:r.util>=0.5?COLORS.green:COLORS.muted);
+  if(teamCharts.capPerson) teamCharts.capPerson.destroy();
+  teamCharts.capPerson = new Chart(document.getElementById('ch-capacity-person'),{
+    type:'bar',
+    data:{labels, datasets:[{label:'Capacity %', data, backgroundColor:bgColors, borderRadius:0}]},
+    options:{responsive:true, maintainAspectRatio:false, indexAxis:'y',
+      plugins:{legend:{display:false},
+        tooltip:{...tooltipStyle,
+          callbacks:{label:c=>{
+            const r = rows[c.dataIndex];
+            return [`Capacity: ${c.raw.toFixed(0)}%`, `Deals: ${r.deals}`, `Hours/wk: ${r.hPerWeek}`, `Revenue: ${fmtFull(r.revenue)} THB`];
+          }}},
+        // Annotation line at 100%
+      },
+      scales:{
+        x:{ticks:{callback:v=>v+'%', color:COLORS.muted, font:{weight:'700'}}, grid:gridStyle,
+          afterDraw:(scale)=>{}},
+        y:{grid:{display:false}, ticks:{color:COLORS.ink, font:{size:12, weight:'800'}}}
+      }}
+  });
+}
+
+function renderCapacityByPersonTable(){
+  const rows = getCapacityByPerson();
+  if(rows.length === 0){ document.getElementById('tbl-capacity-person').innerHTML = '<thead><tr><th>No data</th></tr></thead>'; return; }
+  let html = `<thead><tr>
+    <th>Person</th><th class="num">Total Deals</th><th class="num">Revenue Touched</th><th class="num">KOLs</th>
+    <th class="num">Hrs/Day</th><th class="num">Hrs/Week</th><th class="num">Hrs/Month</th>
+    <th class="num">Capacity %</th><th>Status</th>
+  </tr></thead><tbody>`;
+  rows.forEach(r=>{
+    const util = (r.util*100).toFixed(0);
+    const color = r.util>=1.5?COLORS.red:r.util>=1?COLORS.amber:r.util>=0.5?COLORS.green:COLORS.muted;
+    const status = r.util>=1.5?'⚠ OVERLOAD':r.util>=1?'AT CAPACITY':r.util>=0.5?'HEALTHY':'UNDER-USED';
+    html += `<tr>
+      <td><strong style="font-size:14px">${r.name}</strong></td>
+      <td class="num">${r.deals}</td>
+      <td class="num">${fmtFull(r.revenue)}</td>
+      <td class="num">${fmtFull(r.kols)}</td>
+      <td class="num">${r.hPerDay.toFixed(1)}</td>
+      <td class="num">${r.hPerWeek.toFixed(0)}</td>
+      <td class="num">${r.hPerMonth.toFixed(0)}</td>
+      <td class="num" style="font-weight:800;color:${color};font-size:13px">${util}%</td>
+      <td class="tag" style="color:${color};font-weight:800">${status}</td>
+    </tr>`;
+  });
+  html += '</tbody>';
+  document.getElementById('tbl-capacity-person').innerHTML = html;
+}
+
+function renderTeamPage(){
+  renderTeamKPIs(); renderSaleWinRate(); renderSaleValue(); renderSalesTable();
+  renderPMWorkload(); renderPlannerWorkload(); renderKOLTable(); renderADSTable();
+  renderCapacityByPersonChart(); renderCapacityByPersonTable();
+}
+
+// === QUALITY PAGE ===
+let qualityCharts = {};
+
+function renderQualityKPIs(){
+  const total = D.pipeline.length;
+  const fail = D.pipeline.filter(d=>d.status==='Fail');
+  const hold = D.pipeline.filter(d=>d.status==='Hold');
+  const wait = D.pipeline.filter(d=>d.status==='Wait');
+  const planning = D.pipeline.filter(d=>d.status==='Planning');
+  const won = D.pipeline.filter(d=>d.status==='Done'||d.status==='Doing');
+  const lostRev = fail.reduce((s,d)=>s+d.budget,0);
+  const lostGp = fail.reduce((s,d)=>s+d.gp,0);
+  const wastedKols = fail.reduce((s,d)=>s+d.no_kols,0);
+  const pendingValue = hold.reduce((s,d)=>s+d.budget,0) + wait.reduce((s,d)=>s+d.budget,0) + planning.reduce((s,d)=>s+d.budget,0);
+  const overallWinRate = (won.length+fail.length)>0 ? won.length/(won.length+fail.length) : 0;
+  const workloadTax = (hold.length + wait.length + planning.length + fail.length) * 8;
+
+  document.getElementById('quality-kpis').innerHTML = `
+    <div class="kpi"><div class="kpi-label">Total Deals</div><div class="kpi-value">${total}</div><div class="kpi-sub">ทุกสถานะรวมกัน</div></div>
+    <div class="kpi"><div class="kpi-label">Overall Win Rate</div><div class="kpi-value ${overallWinRate>=0.7?'good':overallWinRate>=0.5?'warn':'danger'}">${(overallWinRate*100).toFixed(0)}%</div><div class="kpi-sub">${won.length} won ÷ (${won.length}+${fail.length})</div></div>
+    <div class="kpi kpi-warn"><div class="kpi-label">Lost Revenue</div><div class="kpi-value danger">${fmt(lostRev)}</div><div class="kpi-sub">${fail.length} ดีล Fail · GP หาย ${fmt(lostGp)}</div></div>
+    <div class="kpi kpi-warn"><div class="kpi-label">Wasted KOLs</div><div class="kpi-value danger">${fmt(wastedKols)}</div><div class="kpi-sub">KOL ที่เตรียมไว้แล้วเสียเปล่า</div></div>
+    <div class="kpi"><div class="kpi-label">Pending Value</div><div class="kpi-value warn">${fmt(pendingValue)}</div><div class="kpi-sub">Hold + Wait + Plan</div></div>
+    <div class="kpi kpi-warn"><div class="kpi-label">Workload Tax</div><div class="kpi-value danger">${workloadTax} hrs</div><div class="kpi-sub">≈ ${(workloadTax/8).toFixed(0)} man-days</div></div>
+  `;
+}
+
+function renderDiagnosticCards(){
+  const fail = D.pipeline.filter(d=>d.status==='Fail');
+  const salesLost = {};
+  fail.forEach(d=>{
+    if(!salesLost[d.sale]) salesLost[d.sale] = {count:0, value:0, kols:0};
+    salesLost[d.sale].count++;
+    salesLost[d.sale].value += d.budget;
+    salesLost[d.sale].kols += d.no_kols;
+  });
+  const topLoser = Object.entries(salesLost).sort((a,b)=>b[1].value-a[1].value)[0];
+  const channels = [...new Set(D.pipeline.map(d=>d.channel))].filter(c=>c!=='N/A');
+  const worstChannel = channels.map(ch=>{
+    const sub = D.pipeline.filter(d=>d.channel===ch);
+    const w = sub.filter(d=>d.status==='Done'||d.status==='Doing').length;
+    const l = sub.filter(d=>d.status==='Fail').length;
+    return {ch, wr:(w+l)>0?w/(w+l):0, lostValue: sub.filter(d=>d.status==='Fail').reduce((s,d)=>s+d.budget,0), total:sub.length};
+  }).filter(c=>c.total>=5).sort((a,b)=>a.wr-b.wr)[0];
+  const hold = D.pipeline.filter(d=>d.status==='Hold').reduce((s,d)=>s+d.budget,0);
+  const wait = D.pipeline.filter(d=>d.status==='Wait').reduce((s,d)=>s+d.budget,0);
+
+  document.getElementById('diag-cards').innerHTML = `
+    <div class="diag-card">
+      <div class="diag-label">PROBLEM #1 · เงินหายมากสุด</div>
+      <div class="diag-value danger">${topLoser ? topLoser[0] : '—'}</div>
+      <div class="diag-detail">เสียดีล <strong>${topLoser ? topLoser[1].count : 0} ดีล</strong> มูลค่ารวม <strong style="color:${COLORS.red}">${topLoser ? fmt(topLoser[1].value) : '0'}</strong><br>+ KOL ที่เตรียมเสียเปล่า <strong>${topLoser ? topLoser[1].kols : 0} คน</strong></div>
+    </div>
+    <div class="diag-card">
+      <div class="diag-label">PROBLEM #2 · ช่องทางที่ Fail บ่อย</div>
+      <div class="diag-value danger">${worstChannel ? worstChannel.ch : '—'}</div>
+      <div class="diag-detail">Win Rate แค่ <strong style="color:${COLORS.red}">${worstChannel ? (worstChannel.wr*100).toFixed(0) : 0}%</strong><br>เงินหายจากช่องทางนี้ <strong>${worstChannel ? fmt(worstChannel.lostValue) : 0}</strong> จาก <strong>${worstChannel ? worstChannel.total : 0} ดีล</strong></div>
+    </div>
+    <div class="diag-card warn">
+      <div class="diag-label">PROBLEM #3 · เงินค้างคิวไม่ Action</div>
+      <div class="diag-value warn">${fmt(hold + wait)}</div>
+      <div class="diag-detail">Hold <strong>${fmt(hold)}</strong> + Wait <strong>${fmt(wait)}</strong><br>ทีมแบกความรอ ไม่รู้จะทำต่อหรือทิ้ง — Sale ต้องเคลียร์</div>
+    </div>
+    <div class="diag-card">
+      <div class="diag-label">PROBLEM #4 · เวลาที่เสียกับ Quality ต่ำ</div>
+      <div class="diag-value danger">~${(fail.length*8)} ชม.</div>
+      <div class="diag-detail">${fail.length} ดีล Fail × ~8 ชม. (pitch + meeting + รอ)<br>= <strong>${(fail.length*8/8).toFixed(0)} man-days</strong> ที่ทีมเสียกับลีดที่ Sale ไม่ qualify</div>
+    </div>
+  `;
+}
+
+function renderStatusFull(){
+  const statuses = ['Done','Doing','Wait','Planning','Hold','Fail'];
+  const counts = statuses.map(s=>D.pipeline.filter(d=>d.status===s).length);
+  const values = statuses.map(s=>D.pipeline.filter(d=>d.status===s).reduce((sum,d)=>sum+d.budget,0));
+  if(qualityCharts.statusFull) qualityCharts.statusFull.destroy();
+  qualityCharts.statusFull = new Chart(document.getElementById('ch-status-full'),{
+    type:'bar',
+    data:{labels:statuses,
+      datasets:[
+        {label:'# Deals', data:counts, backgroundColor:statuses.map(s=>STATUS_COLOR[s]), yAxisID:'y', borderRadius:0},
+        {label:'Value (M)', data:values.map(v=>v/1e6), type:'line', borderColor:COLORS.goldDark, backgroundColor:COLORS.goldDark, yAxisID:'y1', tension:0.3, pointRadius:7, borderWidth:3}
+      ]},
+    options:{responsive:true, maintainAspectRatio:false,
+      plugins:{legend:legendStyle, tooltip:{...tooltipStyle, callbacks:{label:c=>c.dataset.label==='Value (M)'?`${c.raw.toFixed(2)} M THB`:`${c.raw} deals`}}},
+      scales:{
+        y:{position:'left', title:{display:true, text:'# Deals', color:COLORS.muted, font:{weight:'700'}}, grid:gridStyle, ticks:{color:COLORS.muted, font:{weight:'700'}}},
+        y1:{position:'right', title:{display:true, text:'Value (M)', color:COLORS.muted, font:{weight:'700'}}, grid:{display:false}, ticks:{color:COLORS.muted, font:{weight:'700'}}},
+        x:{grid:{display:false}, ticks:{color:COLORS.ink, font:{weight:'800', size:13}}}
+      }}
+  });
+}
+
+function renderStatusRevenue(){
+  const statuses = ['Done','Doing','Wait','Planning','Hold','Fail'];
+  const values = statuses.map(s=>D.pipeline.filter(d=>d.status===s).reduce((sum,d)=>sum+d.budget,0));
+  const total = values.reduce((s,v)=>s+v,0);
+  if(qualityCharts.statusRev) qualityCharts.statusRev.destroy();
+  qualityCharts.statusRev = new Chart(document.getElementById('ch-status-revenue'),{
+    type:'doughnut',
+    data:{labels:statuses.map((s,i)=>`${s} (${(values[i]/total*100).toFixed(0)}%)`),
+      datasets:[{data:values, backgroundColor:statuses.map(s=>STATUS_COLOR[s]), borderColor:COLORS.paper, borderWidth:3}]},
+    options:{responsive:true, maintainAspectRatio:false,
+      plugins:{legend:{position:'right', labels:{boxWidth:14, font:{size:12, weight:'700'}, color:COLORS.ink, padding:12}}, tooltip:{...tooltipStyle, callbacks:{label:c=>`${c.label}: ${fmtFull(c.raw)} THB`}}}}
+  });
+}
+
+function getChannelStats(){
+  const channels = [...new Set(D.pipeline.map(d=>d.channel))].filter(c=>c!=='N/A');
+  return channels.map(ch=>{
+    const sub = D.pipeline.filter(d=>d.channel===ch);
+    const won = sub.filter(d=>d.status==='Done'||d.status==='Doing');
+    const fail = sub.filter(d=>d.status==='Fail');
+    const wait = sub.filter(d=>d.status==='Wait');
+    const plan = sub.filter(d=>d.status==='Planning');
+    const hold = sub.filter(d=>d.status==='Hold');
+    const winRate = (won.length+fail.length)>0 ? won.length/(won.length+fail.length) : 0;
+    return {ch, total:sub.length, won:won.length, fail:fail.length, wait:wait.length, plan:plan.length, hold:hold.length,
+      winRate, wonValue:won.reduce((s,d)=>s+d.budget,0), lostValue:fail.reduce((s,d)=>s+d.budget,0),
+      wastedKols: fail.reduce((s,d)=>s+d.no_kols,0)};
+  }).sort((a,b)=>b.total-a.total);
+}
+
+function renderChannelWinRate(){
+  const stats = getChannelStats().filter(s=>s.total>=2);
+  if(qualityCharts.chWR) qualityCharts.chWR.destroy();
+  qualityCharts.chWR = new Chart(document.getElementById('ch-channel-winrate'),{
+    type:'bar',
+    data:{labels:stats.map(s=>s.ch),
+      datasets:[{label:'Win Rate %', data:stats.map(s=>(s.winRate*100).toFixed(1)),
+        backgroundColor:stats.map(s=>s.winRate>=0.7?COLORS.green:s.winRate>=0.5?COLORS.gold:COLORS.red), borderRadius:0}]},
+    options:{responsive:true, maintainAspectRatio:false,
+      plugins:{legend:{display:false},
+        tooltip:{...tooltipStyle, callbacks:{label:c=>`Win Rate: ${c.raw}% · ${stats[c.dataIndex].won} won / ${stats[c.dataIndex].fail} fail`}}},
+      scales:{y:{max:100, ticks:{callback:v=>v+'%', color:COLORS.muted, font:{weight:'700'}}, grid:gridStyle},
+        x:{grid:{display:false}, ticks:{color:COLORS.ink, font:{weight:'800', size:13}}}}}
+  });
+}
+
+function renderChannelLost(){
+  const stats = getChannelStats().filter(s=>s.lostValue>0);
+  if(qualityCharts.chLost) qualityCharts.chLost.destroy();
+  qualityCharts.chLost = new Chart(document.getElementById('ch-channel-lost'),{
+    type:'bar',
+    data:{labels:stats.map(s=>s.ch),
+      datasets:[
+        {label:'Won Value', data:stats.map(s=>s.wonValue), backgroundColor:COLORS.green, borderRadius:0},
+        {label:'Lost Value', data:stats.map(s=>s.lostValue), backgroundColor:COLORS.red, borderRadius:0}
+      ]},
+    options:{responsive:true, maintainAspectRatio:false,
+      plugins:{legend:legendStyle, tooltip:{...tooltipStyle, callbacks:{label:c=>`${c.dataset.label}: ${fmtFull(c.raw)} THB`}}},
+      scales:{y:{ticks:{callback:v=>fmt(v), color:COLORS.muted, font:{weight:'700'}}, grid:gridStyle},
+        x:{grid:{display:false}, ticks:{color:COLORS.ink, font:{weight:'800', size:13}}}}}
+  });
+}
+
+function renderChannelTable(){
+  const stats = getChannelStats();
+  let html = `<thead><tr>
+    <th>Channel</th><th class="num">Total</th>
+    <th class="num">Done+Doing</th><th class="num">Wait</th><th class="num">Plan</th><th class="num">Hold</th><th class="num">Fail</th>
+    <th class="num">Win Rate</th><th class="num">Won Value</th><th class="num">Lost Value</th><th class="num">Wasted KOLs</th>
+  </tr></thead><tbody>`;
+  stats.forEach(s=>{
+    html += `<tr>
+      <td><strong>${s.ch}</strong></td><td class="num">${s.total}</td>
+      <td class="num"><span class="pill pill-done">${s.won}</span></td>
+      <td class="num">${s.wait?'<span class="pill pill-wait">'+s.wait+'</span>':'—'}</td>
+      <td class="num">${s.plan?'<span class="pill pill-planning">'+s.plan+'</span>':'—'}</td>
+      <td class="num">${s.hold?'<span class="pill pill-hold">'+s.hold+'</span>':'—'}</td>
+      <td class="num">${s.fail?'<span class="pill pill-fail">'+s.fail+'</span>':'—'}</td>
+      <td class="num" style="color:${s.winRate>=0.7?COLORS.green:s.winRate>=0.5?COLORS.goldDark:COLORS.red};font-weight:800">${(s.winRate*100).toFixed(0)}%</td>
+      <td class="num" style="color:${COLORS.green}">${fmtFull(s.wonValue)}</td>
+      <td class="num" style="color:${COLORS.red};font-weight:800">${fmtFull(s.lostValue)}</td>
+      <td class="num" style="color:${COLORS.red}">${fmtFull(s.wastedKols)}</td>
+    </tr>`;
+  });
+  html += '</tbody>';
+  document.getElementById('tbl-channel').innerHTML = html;
+}
+
+function renderSaleQualityTable(){
+  const stats = getSalesStats(D.pipeline);
+  stats.forEach(s=>{
+    s.totalRev = s.realRev + s.pipeline + s.holdVal + s.lostVal;
+    s.revenueCapture = s.totalRev>0 ? s.realRev/s.totalRev : 0;
+    s.wasteRatio = s.total>0 ? s.fail/s.total : 0;
+    s.qualityScore = s.winRate * s.revenueCapture * (1 - s.wasteRatio);
+  });
+  stats.sort((a,b)=>b.qualityScore - a.qualityScore);
+  let html = `<thead><tr>
+    <th>Sale</th><th class="num">Total Deals</th>
+    <th class="num">Win Rate</th><th class="num">Revenue Capture</th><th class="num">Waste Ratio</th>
+    <th class="num">Real Rev</th><th class="num">Lost Value</th><th class="num">Wasted KOLs</th>
+    <th class="num">Quality Score</th>
+  </tr></thead><tbody>`;
+  stats.forEach(s=>{
+    const qsColor = s.qualityScore>=0.4?COLORS.green:s.qualityScore>=0.2?COLORS.gold:COLORS.red;
+    html += `<tr>
+      <td><strong>${s.sale}</strong></td>
+      <td class="num">${s.total}</td>
+      <td class="num" style="color:${s.winRate>=0.7?COLORS.green:s.winRate>=0.5?COLORS.gold:COLORS.red};font-weight:800">${(s.winRate*100).toFixed(0)}%</td>
+      <td class="num" style="color:${s.revenueCapture>=0.6?COLORS.green:s.revenueCapture>=0.3?COLORS.gold:COLORS.red}">${(s.revenueCapture*100).toFixed(0)}%</td>
+      <td class="num" style="color:${s.wasteRatio<=0.15?COLORS.green:s.wasteRatio<=0.25?COLORS.gold:COLORS.red};font-weight:800">${(s.wasteRatio*100).toFixed(0)}%</td>
+      <td class="num">${fmtFull(s.realRev)}</td>
+      <td class="num" style="color:${COLORS.red};font-weight:800">${fmtFull(s.lostVal)}</td>
+      <td class="num" style="color:${COLORS.red}">${fmtFull(s.wastedKols)}</td>
+      <td class="num" style="color:${qsColor};font-weight:900;font-size:15px">${(s.qualityScore*100).toFixed(0)}</td>
+    </tr>`;
+  });
+  html += '</tbody>';
+  document.getElementById('tbl-sale-quality').innerHTML = html;
+}
+
+function renderLostDealsTable(){
+  const lost = D.pipeline.filter(d=>d.status==='Fail').sort((a,b)=>b.budget-a.budget);
+  const max = Math.max(...lost.map(d=>d.budget));
+  document.getElementById('lost-badge').textContent = `${lost.length} ดีล · ${fmt(lost.reduce((s,d)=>s+d.budget,0))}`;
+  let html = `<thead><tr>
+    <th>Project</th><th>Sale</th><th>Channel</th><th>Type</th><th class="num">Lost Revenue</th><th class="num">Lost GP</th><th class="num">Wasted KOLs</th><th>Visual</th>
+  </tr></thead><tbody>`;
+  lost.forEach(d=>{
+    const pct = max>0 ? (d.budget/max*100).toFixed(0) : 0;
+    html += `<tr>
+      <td><strong>${d.name}</strong></td>
+      <td><span class="pill" style="background:${COLORS.muted};color:${COLORS.paper}">${d.sale}</span></td>
+      <td class="tag">${d.channel}</td>
+      <td class="tag" style="color:${COLORS.muted}">${d.type}</td>
+      <td class="num" style="color:${COLORS.red};font-weight:800">${fmtFull(d.budget)}</td>
+      <td class="num" style="color:${COLORS.red}">${fmtFull(d.gp)}</td>
+      <td class="num">${d.no_kols.toFixed(0)}</td>
+      <td class="bar-cell danger"><div class="bar" style="width:${pct}%"></div><div class="label">${pct}%</div></td>
+    </tr>`;
+  });
+  html += '</tbody>';
+  document.getElementById('tbl-lost-deals').innerHTML = html;
+  
+  const totalLost = lost.reduce((s,d)=>s+d.budget,0);
+  const totalKols = lost.reduce((s,d)=>s+d.no_kols,0);
+  const topLoserSale = {};
+  lost.forEach(d=>{ topLoserSale[d.sale] = (topLoserSale[d.sale]||0) + d.budget; });
+  const worstSale = Object.entries(topLoserSale).sort((a,b)=>b[1]-a[1])[0];
+  document.getElementById('quality-bottom-line').innerHTML = 
+    `Sale "<em>${worstSale ? worstSale[0]:'—'}</em>" ทำเงินหาย <em>${fmt(worstSale?worstSale[1]:0)}</em> จาก ${lost.filter(d=>d.sale===(worstSale?worstSale[0]:'')).length} ดีลที่ Fail · รวมทีมเสียโอกาส <em>${fmt(totalLost)}</em> และเตรียม KOL เสียเปล่า <em>${fmt(totalKols)} คน</em> — ปัญหาคือ <em>คุณภาพลีด</em> ไม่ใช่ปริมาณงาน`;
+}
+
+function renderQualityPage(){
+  renderQualityKPIs(); renderDiagnosticCards();
+  renderStatusFull(); renderStatusRevenue();
+  renderChannelWinRate(); renderChannelLost(); renderChannelTable();
+  renderSaleQualityTable(); renderLostDealsTable();
+}
+
+// === ANALYSIS PAGE ===
+let analysisCharts = {};
+
+function renderAnalysisKPIs(){
+  const real = activeOnly(D.pipeline).reduce((s,d)=>s+d.budget,0);
+  const realG = activeOnly(D.pipeline).reduce((s,d)=>s+d.gp,0);
+  const pipeline = D.pipeline.filter(d=>['Wait','Planning'].includes(d.status)).reduce((s,d)=>s+d.budget,0);
+  const lost = D.pipeline.filter(d=>d.status==='Fail').reduce((s,d)=>s+d.budget,0);
+  const fixedCost = D.fixed_costs.reduce((s,d)=>s+d.budget_2026,0);
+  document.getElementById('analysis-kpis').innerHTML = `
+    <div class="kpi"><div class="kpi-label">Real Revenue · Booked</div><div class="kpi-value">${fmt(real)}</div><div class="kpi-sub">${fmt(realG)} GP · ${(realG/real*100).toFixed(1)}% margin</div></div>
+    <div class="kpi"><div class="kpi-label">Pipeline · Potential</div><div class="kpi-value warn">${fmt(pipeline)}</div><div class="kpi-sub">${D.pipeline.filter(d=>['Wait','Planning'].includes(d.status)).length} active opportunities</div></div>
+    <div class="kpi kpi-warn"><div class="kpi-label">Lost Opportunity</div><div class="kpi-value danger">${fmt(lost)}</div><div class="kpi-sub">${D.pipeline.filter(d=>d.status==='Fail').length} deals failed</div></div>
+    <div class="kpi"><div class="kpi-label">Fixed Cost · 2026 Plan</div><div class="kpi-value">${fmt(fixedCost)}</div><div class="kpi-sub">≈ ${fmt(fixedCost/12)}/month break-even</div></div>
+  `;
+}
+
+function renderPipeQuarter(){
+  const quarters = ['Q1','Q2','Q3','Q4'];
+  const data = quarters.map(q=>{
+    const deals = D.pipeline.filter(d=>d.quarter===q);
+    return {q, count:deals.length, value:deals.reduce((s,d)=>s+d.budget,0), gp:deals.reduce((s,d)=>s+d.gp,0)};
+  });
+  if(analysisCharts.quarter) analysisCharts.quarter.destroy();
+  analysisCharts.quarter = new Chart(document.getElementById('ch-pipe-quarter'),{
+    type:'bar',
+    data:{labels:quarters,
+      datasets:[
+        {label:'Revenue (M)', data:data.map(d=>d.value/1e6), backgroundColor:COLORS.burgundy, borderRadius:0},
+        {label:'GP (M)', data:data.map(d=>d.gp/1e6), backgroundColor:COLORS.gold, borderRadius:0}
+      ]},
+    options:{responsive:true, maintainAspectRatio:false,
+      plugins:{legend:legendStyle, tooltip:{...tooltipStyle, callbacks:{label:c=>`${c.dataset.label}: ${c.raw.toFixed(2)} M THB`}}},
+      scales:{y:{ticks:{callback:v=>v+'M', color:COLORS.muted, font:{weight:'700'}}, grid:gridStyle},
+        x:{grid:{display:false}, ticks:{color:COLORS.ink, font:{weight:'800', size:14}}}}}
+  });
+}
+
+function renderTypeMix(){
+  const types = {};
+  D.pipeline.forEach(d=>{
+    if(!types[d.type]) types[d.type]={count:0, value:0};
+    types[d.type].count++; types[d.type].value += d.budget;
+  });
+  const sorted = Object.entries(types).sort((a,b)=>b[1].value-a[1].value).slice(0,8);
+  if(analysisCharts.typemix) analysisCharts.typemix.destroy();
+  analysisCharts.typemix = new Chart(document.getElementById('ch-type-mix'),{
+    type:'doughnut',
+    data:{labels:sorted.map(x=>x[0]),
+      datasets:[{data:sorted.map(x=>x[1].value),
+        backgroundColor:[COLORS.burgundy, COLORS.gold, COLORS.champagne, COLORS.green, COLORS.goldDark, COLORS.amber, COLORS.muted, COLORS.burgundyLight],
+        borderColor:COLORS.paper, borderWidth:3}]},
+    options:{responsive:true, maintainAspectRatio:false,
+      plugins:{legend:{position:'right', labels:{boxWidth:14, font:{size:11, weight:'700'}, color:COLORS.ink, padding:10}}, tooltip:{...tooltipStyle, callbacks:{label:c=>`${c.label}: ${fmtFull(c.raw)} THB`}}}}
+  });
+}
+
+function renderGPDist(){
+  const buckets = [
+    {label:'0-10%', min:0, max:10, color:COLORS.red},
+    {label:'10-15%', min:10, max:15, color:COLORS.burgundy},
+    {label:'15-20%', min:15, max:20, color:COLORS.amber},
+    {label:'20-25%', min:20, max:25, color:COLORS.gold},
+    {label:'25-35%', min:25, max:35, color:COLORS.goldLight},
+    {label:'>35%', min:35, max:200, color:COLORS.green}
+  ];
+  const dealsWithGP = D.pipeline.filter(d=>d.budget>0 && d.gp>0);
+  const counts = buckets.map(b=>dealsWithGP.filter(d=>d.gp_pct>=b.min && d.gp_pct<b.max).length);
+  if(analysisCharts.gpdist) analysisCharts.gpdist.destroy();
+  analysisCharts.gpdist = new Chart(document.getElementById('ch-gp-dist'),{
+    type:'bar',
+    data:{labels:buckets.map(b=>b.label),
+      datasets:[{data:counts, backgroundColor:buckets.map(b=>b.color), borderRadius:0}]},
+    options:{responsive:true, maintainAspectRatio:false,
+      plugins:{legend:{display:false}, tooltip:{...tooltipStyle, callbacks:{label:c=>`${c.raw} deals`}}},
+      scales:{y:{title:{display:true, text:'# Deals', color:COLORS.muted, font:{weight:'700'}}, grid:gridStyle, ticks:{color:COLORS.muted, font:{weight:'700'}}},
+        x:{grid:{display:false}, ticks:{color:COLORS.ink, font:{weight:'800', size:13}}}}}
+  });
+}
+
+function renderStatusPie(){
+  const statuses = ['Done','Doing','Wait','Planning','Hold','Fail'];
+  const counts = statuses.map(s=>D.pipeline.filter(d=>d.status===s).length);
+  if(analysisCharts.statusPie) analysisCharts.statusPie.destroy();
+  analysisCharts.statusPie = new Chart(document.getElementById('ch-status-pie'),{
+    type:'doughnut',
+    data:{labels:statuses, datasets:[{data:counts, backgroundColor:statuses.map(s=>STATUS_COLOR[s]), borderColor:COLORS.paper, borderWidth:3}]},
+    options:{responsive:true, maintainAspectRatio:false,
+      plugins:{legend:{position:'right', labels:{boxWidth:14, font:{size:12, weight:'700'}, color:COLORS.ink, padding:10}}, tooltip:{...tooltipStyle, callbacks:{label:c=>`${c.label}: ${c.raw} deals`}}}}
+  });
+}
+
+function renderScenarios(){
+  const realRev = activeOnly(D.pipeline).reduce((s,d)=>s+d.budget,0);
+  const realGp = activeOnly(D.pipeline).reduce((s,d)=>s+d.gp,0);
+  const waitDeals = D.pipeline.filter(d=>d.status==='Wait');
+  const planDeals = D.pipeline.filter(d=>d.status==='Planning');
+  const waitVal = waitDeals.reduce((s,d)=>s+d.budget,0);
+  const waitGp = waitDeals.reduce((s,d)=>s+d.gp,0);
+  const planVal = planDeals.reduce((s,d)=>s+d.budget,0);
+  const planGp = planDeals.reduce((s,d)=>s+d.gp,0);
+  const fixedCost = D.fixed_costs.reduce((s,d)=>s+d.budget_2026,0);
+  const scenarios = {
+    best:  {waitConv:0.75, planConv:0.6, newPipe:8000000, gpUplift:1.18, fc:fixedCost},
+    base:  {waitConv:0.4,  planConv:0.3, newPipe:4000000, gpUplift:1.00, fc:fixedCost},
+    worst: {waitConv:0.15, planConv:0.1, newPipe:1000000, gpUplift:0.82, fc:fixedCost*1.05}
+  };
+  function calc(s){
+    const totalRev = realRev + waitVal*s.waitConv + planVal*s.planConv + s.newPipe;
+    const blendedMargin = (realGp + waitGp*s.waitConv + planGp*s.planConv + s.newPipe*0.22)/totalRev * s.gpUplift;
+    const totalGp = totalRev * blendedMargin;
+    return {rev:totalRev, gp:totalGp, margin:blendedMargin, net:totalGp - s.fc};
+  }
+  const best = calc(scenarios.best);
+  const base = calc(scenarios.base);
+  const worst = calc(scenarios.worst);
+  document.getElementById('best-rev').textContent = fmt(best.rev);
+  document.getElementById('base-rev').textContent = fmt(base.rev);
+  document.getElementById('worst-rev').textContent = fmt(worst.rev);
+  document.getElementById('best-detail').innerHTML = `GP: <strong>${fmt(best.gp)}</strong> @ ${(best.margin*100).toFixed(1)}%<br>Fixed Cost: ${fmt(scenarios.best.fc)}<br><strong style="color:${COLORS.green}">Net Income: +${fmt(best.net)}</strong>`;
+  document.getElementById('base-detail').innerHTML = `GP: <strong>${fmt(base.gp)}</strong> @ ${(base.margin*100).toFixed(1)}%<br>Fixed Cost: ${fmt(scenarios.base.fc)}<br><strong style="color:${base.net>=0?COLORS.green:COLORS.red}">Net Income: ${base.net>=0?'+':''}${fmt(base.net)}</strong>`;
+  document.getElementById('worst-detail').innerHTML = `GP: <strong>${fmt(worst.gp)}</strong> @ ${(worst.margin*100).toFixed(1)}%<br>Fixed Cost: ${fmt(scenarios.worst.fc)}<br><strong style="color:${worst.net>=0?COLORS.green:COLORS.red}">Net Income: ${fmt(worst.net)}</strong>`;
+  document.getElementById('analysis-bottom-line').innerHTML = 
+    `Base case ปิดปีที่ Net Income ~<em>${fmt(base.net)}</em> · Worst case <em>${fmt(worst.net)}</em> · ความต่างคือ <em>การเก็บเงิน + คุณภาพลีด</em>`;
+  renderCashflowChart(base, scenarios.base.fc);
+}
+
+function renderCashflowChart(base, fc){
+  const labels = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  const active = activeOnly(D.pipeline);
+  const months = labels.map((_,i)=>`2026-${String(i+1).padStart(2,'0')}`);
+  const revMonthly = months.map(()=>0);
+  active.forEach(d=>{
+    if(!d.start || !d.end || d.budget<=0) return;
+    const start = new Date(d.start), end = new Date(d.end);
+    const hits = [];
+    let cur = new Date(start.getFullYear(), start.getMonth(), 1);
+    while(cur <= end){
+      const key = `${cur.getFullYear()}-${String(cur.getMonth()+1).padStart(2,'0')}`;
+      if(months.includes(key)) hits.push(months.indexOf(key));
+      cur = new Date(cur.getFullYear(), cur.getMonth()+1, 1);
+    }
+    if(hits.length>0){
+      const per = d.budget/hits.length;
+      hits.forEach(i=>revMonthly[i]+=per);
+    }
+  });
+  const newPipelineMonths = [0,0,0,0,0,300000,500000,700000,700000,700000,600000,500000];
+  const totalRev = revMonthly.map((v,i)=>v+newPipelineMonths[i]);
+  const fcMonthly = fc/12;
+  let cum = 0;
+  const cumulative = totalRev.map((rev)=>{ cum += (rev - fcMonthly); return cum; });
+  if(analysisCharts.cashflow) analysisCharts.cashflow.destroy();
+  analysisCharts.cashflow = new Chart(document.getElementById('ch-cashflow'),{
+    type:'bar',
+    data:{labels,
+      datasets:[
+        {label:'Revenue In', data:totalRev, backgroundColor:COLORS.green, borderRadius:0, yAxisID:'y'},
+        {label:'Cost Out', data:labels.map(()=>-fcMonthly), backgroundColor:COLORS.red, borderRadius:0, yAxisID:'y'},
+        {label:'Cumulative Net', data:cumulative, type:'line', borderColor:COLORS.gold, backgroundColor:COLORS.gold, tension:0.3, pointRadius:6, yAxisID:'y1', borderWidth:3}
+      ]},
+    options:{responsive:true, maintainAspectRatio:false,
+      plugins:{legend:legendStyle, tooltip:{...tooltipStyle, callbacks:{label:c=>`${c.dataset.label}: ${fmtFull(Math.abs(c.raw))} THB`}}},
+      scales:{
+        y:{ticks:{callback:v=>fmt(v), color:COLORS.muted, font:{weight:'700'}}, grid:gridStyle, position:'left'},
+        y1:{ticks:{callback:v=>fmt(v), color:COLORS.muted, font:{weight:'700'}}, grid:{display:false}, position:'right', title:{display:true, text:'Cumulative', color:COLORS.muted, font:{weight:'700'}}},
+        x:{grid:{display:false}, ticks:{color:COLORS.ink, font:{weight:'800', size:13}}}
+      }}
+  });
+}
+
+function renderAnalysisPage(){
+  renderAnalysisKPIs(); renderPipeQuarter(); renderTypeMix();
+  renderGPDist(); renderStatusPie(); renderScenarios();
+}
+
+function initAll(){
+  renderStatusLegend();
+  renderFinancePage();
+  renderTeamPage();
+  renderQualityPage();
+  renderAnalysisPage();
+}
+document.addEventListener('DOMContentLoaded', initAll);
+if(document.readyState !== 'loading') initAll();
+
+</script>
+
+</body>
+</html>
