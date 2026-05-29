@@ -227,23 +227,103 @@ td.tag{font-family:'JetBrains Mono',monospace;font-size:11px;text-transform:uppe
 
 /* Scenarios */
 .scenario-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:24px;margin:28px 0}
-.scenario{padding:36px 28px;border:2px solid var(--line-strong);position:relative;background:var(--paper);transition:transform 0.3s ease}
-.scenario:hover{transform:translateY(-4px)}
-.scenario-best{background:linear-gradient(180deg,var(--pearl) 0%,var(--paper) 100%);border-color:var(--green)}
-.scenario-best::before{content:"";position:absolute;top:0;left:0;right:0;height:4px;background:var(--green)}
-.scenario-base{background:linear-gradient(180deg,var(--paper) 0%,var(--paper-2) 100%);border-color:var(--gold)}
-.scenario-base::before{content:"";position:absolute;top:0;left:0;right:0;height:4px;background:var(--gold)}
-.scenario-worst{background:linear-gradient(180deg,#f9eeee 0%,var(--paper) 100%);border-color:var(--red)}
-[data-theme="dark"] .scenario-worst{background:linear-gradient(180deg,#3a1e1e 0%,var(--paper) 100%)}
-.scenario-worst::before{content:"";position:absolute;top:0;left:0;right:0;height:4px;background:var(--red)}
-.scenario-label{font-family:'JetBrains Mono',monospace;font-size:11px;text-transform:uppercase;letter-spacing:0.18em;margin-bottom:18px;font-weight:800}
-.scenario-best .scenario-label{color:var(--green)}
-.scenario-base .scenario-label{color:var(--gold-dark)}
-.scenario-worst .scenario-label{color:var(--red)}
-.scenario-value{font-family:'Inter',sans-serif;font-weight:900;font-size:52px;letter-spacing:-0.04em;line-height:1;margin-bottom:8px;color:var(--ink)}
-.scenario-sub{font-family:'Inter',sans-serif;font-style:italic;font-size:14px;color:var(--muted);margin-bottom:24px;font-weight:600}
-.scenario-detail{font-size:13px;line-height:1.85;padding-top:18px;border-top:1.5px solid var(--line);font-weight:500}
-.scenario-detail strong{font-weight:800;color:var(--ink)}
+.scenario{padding:0;border:2px solid var(--line-strong);position:relative;background:var(--paper);transition:transform 0.3s ease;display:flex;flex-direction:column;overflow:hidden}
+.scenario:hover{transform:translateY(-4px);box-shadow:0 12px 32px rgba(0,0,0,0.08)}
+.scenario-best{border-color:var(--green)}
+.scenario-best .scenario-head{background:linear-gradient(135deg,var(--green) 0%,#1a3528 100%);color:var(--paper)}
+.scenario-base{border-color:var(--gold)}
+.scenario-base .scenario-head{background:linear-gradient(135deg,var(--gold-dark) 0%,#5e4a26 100%);color:var(--paper)}
+.scenario-worst{border-color:var(--red)}
+.scenario-worst .scenario-head{background:linear-gradient(135deg,var(--red) 0%,#4a1820 100%);color:var(--paper)}
+.scenario-head{padding:20px 24px;border-bottom:none;position:relative;overflow:hidden}
+.scenario-head::after{content:"";position:absolute;top:0;right:0;width:60%;height:100%;background:linear-gradient(135deg,transparent 0%,rgba(255,255,255,0.05) 100%);pointer-events:none}
+.scenario-label{font-family:'JetBrains Mono',monospace;font-size:11px;text-transform:uppercase;letter-spacing:0.18em;margin-bottom:6px;font-weight:800;opacity:0.85}
+.scenario-name{font-family:'Inter',sans-serif;font-weight:900;font-size:22px;letter-spacing:-0.02em;line-height:1.1}
+.scenario-prob{position:absolute;top:18px;right:20px;font-family:'JetBrains Mono',monospace;font-size:10px;font-weight:800;letter-spacing:0.1em;background:rgba(255,255,255,0.18);padding:5px 10px;border-radius:0;border:1px solid rgba(255,255,255,0.3)}
+.scenario-body{padding:24px;background:var(--paper);flex:1;display:flex;flex-direction:column}
+.scenario-value{font-family:'Inter',sans-serif;font-weight:900;font-size:48px;letter-spacing:-0.04em;line-height:1;margin-bottom:4px;color:var(--ink)}
+.scenario-value-label{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:0.12em;font-weight:800;margin-bottom:24px}
+.scenario-metrics{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:24px;padding:18px;background:var(--pearl);border:1px solid var(--line)}
+.scenario-metric{display:flex;flex-direction:column;gap:2px}
+.scenario-metric-label{font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:0.1em;font-weight:700}
+.scenario-metric-value{font-family:'Inter',sans-serif;font-size:18px;font-weight:800;letter-spacing:-0.02em;color:var(--ink)}
+.scenario-metric-value.green{color:var(--green)}
+.scenario-metric-value.red{color:var(--red)}
+.scenario-metric-value.gold{color:var(--gold-dark)}
+.scenario-assumptions{padding:16px;background:var(--paper-2);border-left:3px solid var(--line-strong);margin-bottom:18px;font-size:11px;line-height:1.7;font-weight:600}
+.scenario-assumptions-title{font-family:'JetBrains Mono',monospace;font-size:10px;text-transform:uppercase;letter-spacing:0.12em;font-weight:800;color:var(--muted);margin-bottom:8px;display:block}
+.scenario-actions{font-size:11px;line-height:1.65;font-weight:600;color:var(--muted);padding-top:16px;border-top:1.5px solid var(--line);margin-top:auto}
+.scenario-actions-title{font-family:'JetBrains Mono',monospace;font-size:10px;text-transform:uppercase;letter-spacing:0.12em;font-weight:800;color:var(--ink);margin-bottom:10px;display:flex;align-items:center;gap:6px}
+.scenario-actions-title::before{content:"";display:inline-block;width:8px;height:8px;background:var(--gold);border-radius:0}
+.scenario-actions ul{list-style:none;padding:0;margin:0}
+.scenario-actions li{padding:3px 0 3px 18px;position:relative;color:var(--ink);font-weight:600;font-size:11.5px}
+.scenario-actions li::before{content:"▸";position:absolute;left:0;color:var(--gold-dark);font-weight:900}
+
+/* Comparison Table */
+.compare-table{width:100%;border-collapse:separate;border-spacing:0;font-family:'Inter',sans-serif}
+.compare-table thead th{background:var(--burgundy-dark);color:var(--paper);padding:14px 16px;font-family:'JetBrains Mono',monospace;font-size:10px;text-transform:uppercase;letter-spacing:0.1em;font-weight:800;text-align:left;border-bottom:3px solid var(--gold)}
+.compare-table thead th.col-best{background:var(--green)}
+.compare-table thead th.col-base{background:var(--gold-dark)}
+.compare-table thead th.col-worst{background:var(--red)}
+.compare-table tbody td{padding:12px 16px;border-bottom:1px solid var(--line);font-size:13px;font-weight:700;color:var(--ink);background:var(--paper)}
+.compare-table tbody td.metric-label{font-family:'Inter',sans-serif;text-transform:none;letter-spacing:normal;background:var(--paper-2);font-weight:700;font-size:13px;color:var(--ink);border-right:2px solid var(--line)}
+.compare-table tbody td.metric-desc{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:0.08em;font-weight:700}
+.compare-table tbody tr.row-net td{background:var(--burgundy);color:var(--paper);font-size:16px;font-weight:900;font-family:'Inter',sans-serif;border-bottom:2px solid var(--gold)}
+.compare-table tbody tr.row-net td.metric-label{background:var(--burgundy-dark);color:var(--gold-light)}
+.compare-table tbody tr:hover td{background:var(--pearl)}
+.compare-table tbody tr.row-net:hover td{background:var(--burgundy)}
+.compare-table .num-best{color:var(--green);font-weight:900}
+.compare-table .num-worst{color:var(--red);font-weight:900}
+.compare-table .num-base{color:var(--gold-dark);font-weight:900}
+
+/* Solution Matrix */
+.solution-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;margin:24px 0}
+.solution-card{background:var(--paper);border:1.5px solid var(--line-strong);padding:0;overflow:hidden;display:flex;flex-direction:column}
+.solution-head{padding:18px 22px;color:var(--paper);position:relative}
+.solution-head.hit-best{background:linear-gradient(135deg,var(--green) 0%,#1a3528 100%)}
+.solution-head.improve-live{background:linear-gradient(135deg,var(--gold-dark) 0%,#5e4a26 100%)}
+.solution-head.avoid-worst{background:linear-gradient(135deg,var(--red) 0%,#4a1820 100%)}
+.solution-title{font-family:'Inter',sans-serif;font-weight:900;font-size:18px;letter-spacing:-0.02em;margin-bottom:4px;line-height:1.2}
+.solution-sub{font-family:'JetBrains Mono',monospace;font-size:10px;text-transform:uppercase;letter-spacing:0.12em;opacity:0.85;font-weight:700}
+.solution-body{padding:20px 22px;flex:1}
+.solution-action{padding:14px 0;border-bottom:1px solid var(--line);display:flex;gap:14px}
+.solution-action:last-child{border-bottom:none}
+.solution-action-num{font-family:'JetBrains Mono',monospace;font-size:14px;font-weight:900;color:var(--burgundy);min-width:30px;letter-spacing:-0.02em}
+.solution-action-text{flex:1;font-size:12.5px;line-height:1.6;font-weight:600;color:var(--ink)}
+.solution-action-text strong{font-weight:900;color:var(--burgundy)}
+.solution-action-impact{display:inline-block;font-family:'JetBrains Mono',monospace;font-size:9px;text-transform:uppercase;letter-spacing:0.1em;background:var(--pearl);padding:2px 8px;color:var(--gold-dark);font-weight:800;margin-top:4px;border:1px solid var(--gold-light)}
+
+/* Risk Heatmap */
+.risk-grid{display:grid;grid-template-columns:200px repeat(3,1fr);gap:0;margin:24px 0;border:1.5px solid var(--line-strong)}
+.risk-cell{padding:14px 16px;border-right:1px solid var(--line);border-bottom:1px solid var(--line);font-size:12px;font-weight:700;background:var(--paper)}
+.risk-cell:last-child{border-right:none}
+.risk-cell.header{background:var(--burgundy-dark);color:var(--paper);font-family:'JetBrains Mono',monospace;font-size:10px;text-transform:uppercase;letter-spacing:0.1em;font-weight:800;text-align:center}
+.risk-cell.factor{font-family:'Inter',sans-serif;font-weight:800;background:var(--paper-2);color:var(--ink);border-right:2px solid var(--line-strong)}
+.risk-cell.h-low{background:#d8e2dc;color:#1a3528}
+.risk-cell.h-med{background:#f2e4c9;color:#5e4a26}
+.risk-cell.h-high{background:#f5d8d8;color:#4a1820}
+.risk-cell.h-crit{background:var(--red);color:var(--paper)}
+.risk-cell-value{font-family:'Inter',sans-serif;font-size:13px;font-weight:900;margin-bottom:2px;line-height:1.1}
+.risk-cell-detail{font-family:'JetBrains Mono',monospace;font-size:9px;text-transform:uppercase;letter-spacing:0.08em;font-weight:700;opacity:0.85}
+
+/* CEO Recommendation */
+.ceo-rec{background:linear-gradient(135deg,#1a1612 0%,var(--burgundy-dark) 60%,var(--burgundy) 100%);color:var(--paper);padding:36px 40px;margin:36px 0;position:relative;overflow:hidden;border:2px solid var(--gold)}
+.ceo-rec::before{content:"";position:absolute;top:0;left:0;right:0;height:5px;background:linear-gradient(90deg,var(--gold-dark),var(--gold),var(--gold-light),var(--gold),var(--gold-dark));background-size:200% 100%;animation:shimmer 4s linear infinite}
+.ceo-rec-eyebrow{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--gold);text-transform:uppercase;letter-spacing:0.2em;font-weight:800;margin-bottom:8px}
+.ceo-rec-title{font-family:'Inter',sans-serif;font-weight:900;font-size:32px;letter-spacing:-0.03em;line-height:1.1;margin-bottom:6px}
+.ceo-rec-sub{font-family:'Inter',sans-serif;font-style:italic;font-size:14px;color:var(--gold-light);font-weight:600;margin-bottom:28px}
+.ceo-rec-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:24px}
+.ceo-bet{background:rgba(255,255,255,0.05);border:1px solid rgba(184,146,74,0.3);padding:22px 24px;position:relative;backdrop-filter:blur(4px)}
+.ceo-bet-num{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--gold);font-weight:800;letter-spacing:0.15em;margin-bottom:10px}
+.ceo-bet-title{font-family:'Inter',sans-serif;font-size:17px;font-weight:900;letter-spacing:-0.02em;margin-bottom:8px;line-height:1.25}
+.ceo-bet-desc{font-size:12.5px;line-height:1.6;font-weight:500;color:rgba(251,250,247,0.85);margin-bottom:14px}
+.ceo-bet-metric{display:flex;justify-content:space-between;align-items:baseline;padding-top:12px;border-top:1px solid rgba(184,146,74,0.3);font-family:'JetBrains Mono',monospace;font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:0.08em}
+.ceo-bet-metric strong{font-family:'Inter',sans-serif;font-size:18px;font-weight:900;color:var(--gold-light);letter-spacing:-0.02em}
+
+@media(max-width:1200px){
+  .scenario-grid,.solution-grid,.ceo-rec-grid{grid-template-columns:1fr}
+  .risk-grid{grid-template-columns:1fr;font-size:11px}
+}
 
 .footer{border-top:2px solid var(--line);padding:28px 56px;margin-top:80px;font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:0.15em;text-align:center;font-weight:700}
 .footer .ornament{color:var(--gold);margin:0 10px}
@@ -745,13 +825,13 @@ td.tag{font-family:'JetBrains Mono',monospace;font-size:11px;text-transform:uppe
     </div>
   </div>
 
-  <div class="section-title"><em>Forecast</em> Scenarios<span class="ornament">●</span><span class="num">Interactive · เลื่อนเพื่อปรับสมมติฐาน</span></div>
+  <div class="section-title"><em>Forecast</em> & Scenarios<span class="ornament">●</span><span class="num">3 Cases · Live Tuner · Detailed Comparison</span></div>
 
   <!-- INTERACTIVE SCENARIO SLIDERS -->
   <div class="card" style="margin-bottom:24px">
     <div class="card-head">
-      <div class="card-title">What-if <em>Scenario Tuner</em></div>
-      <div class="card-meta">ปรับ slider แล้วดูตัวเลขเปลี่ยน real-time</div>
+      <div class="card-title">Your Case · <em>What-if Tuner</em></div>
+      <div class="card-meta">ปรับ slider ด้านล่าง · ตัวเลข Your Case อัพเดท real-time</div>
     </div>
     <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:20px;margin-top:8px">
       <div>
@@ -773,37 +853,53 @@ td.tag{font-family:'JetBrains Mono',monospace;font-size:11px;text-transform:uppe
     </div>
   </div>
 
-  <div class="scenario-grid">
-    <div class="scenario scenario-best">
-      <div class="scenario-label">◇ Best Case</div>
-      <div class="scenario-value" id="best-rev">—</div>
-      <div class="scenario-sub">เก็บ AR 80% · Wait → Won 75%</div>
-      <div class="scenario-detail" id="best-detail"></div>
+  <!-- 3 SCENARIO CARDS - DETAILED -->
+  <div class="scenario-grid" id="scenario-cards"></div>
+
+  <!-- DETAILED COMPARISON TABLE -->
+  <div class="card" style="margin-bottom:24px">
+    <div class="card-head">
+      <div class="card-title">Detailed <em>Side-by-Side Comparison</em></div>
+      <div class="card-meta">ทุก metric เทียบ 3 cases · เห็นภาพรวมการเงินครบ</div>
     </div>
-    <div class="scenario scenario-base">
-      <div class="scenario-label">◆ Your Case · Live</div>
-      <div class="scenario-value" id="base-rev">—</div>
-      <div class="scenario-sub" id="base-sub">ปรับ slider ด้านบน</div>
-      <div class="scenario-detail" id="base-detail"></div>
-    </div>
-    <div class="scenario scenario-worst">
-      <div class="scenario-label">◈ Worst Case</div>
-      <div class="scenario-value" id="worst-rev">—</div>
-      <div class="scenario-sub">เก็บ AR 25% · Wait → Won 15%</div>
-      <div class="scenario-detail" id="worst-detail"></div>
+    <div class="card-body" style="overflow-x:auto;padding:0">
+      <table class="compare-table" id="compare-table"></table>
     </div>
   </div>
 
-  <div class="card" style="margin-top:24px">
+  <!-- 12-MONTH CASH FLOW -->
+  <div class="card" style="margin-bottom:24px">
     <div class="card-head">
-      <div class="card-title">12-Month <em>Cash Flow</em> Forecast</div>
-      <div class="card-meta">Live · ปรับตาม slider</div>
+      <div class="card-title">12-Month <em>Cash Flow Forecast</em></div>
+      <div class="card-meta">Live · ปรับตาม Your Case sliders · เห็นเดือนที่เงินสดต่ำสุด</div>
     </div>
     <div class="chart-wrap tall"><canvas id="ch-cashflow"></canvas></div>
   </div>
 
+  <!-- SOLUTION MATRIX -->
+  <div class="section-title"><em>Action Plan</em><span class="ornament">●</span><span class="num">Solutions · ทำอะไรให้ไป Best Case · หลีกเลี่ยง Worst Case</span></div>
+  <div class="solution-grid" id="solution-grid"></div>
+
+  <!-- RISK HEATMAP -->
+  <div class="section-title"><em>Risk Heatmap</em><span class="ornament">●</span><span class="num">5 ปัจจัยเสี่ยง · Probability × Impact</span></div>
+  <div class="card">
+    <div class="card-head">
+      <div class="card-title">Risk <em>Sensitivity Matrix</em></div>
+      <div class="card-meta">เห็นปัจจัยไหน critical ต่อ Net Income มากสุด</div>
+    </div>
+    <div class="risk-grid" id="risk-grid"></div>
+  </div>
+
+  <!-- CEO RECOMMENDATION -->
+  <div class="ceo-rec">
+    <div class="ceo-rec-eyebrow">◆ Strategic Brief · CEO Decision Required</div>
+    <div class="ceo-rec-title">3 Bets ที่จะตัดสินปี 2026</div>
+    <div class="ceo-rec-sub">priority-ranked · expected impact quantified · timeline-bound</div>
+    <div class="ceo-rec-grid" id="ceo-bets"></div>
+  </div>
+
   <div class="insight-box">
-    <div class="insight-box-label">◆ Strategic Bet</div>
+    <div class="insight-box-label">◆ Strategic Bottom Line</div>
     <div class="insight-box-text" id="analysis-bottom-line"></div>
   </div>
 </div>
@@ -2409,16 +2505,57 @@ function renderStatusPie(){
 }
 
 // === INTERACTIVE SCENARIO ===
-function calcScenario(waitC, planC, newPipe, gpMul, fc){
+// Comprehensive financial scenario model
+function calcScenario(waitC, planC, newPipe, gpMul, fc, arCollect){
   const realRev = activeOnly(D.pipeline).reduce((s,d)=>s+d.budget,0);
   const realGp = activeOnly(D.pipeline).reduce((s,d)=>s+d.gp,0);
   const waitVal = D.pipeline.filter(d=>d.status==='Wait').reduce((s,d)=>s+d.budget,0);
   const waitGp = D.pipeline.filter(d=>d.status==='Wait').reduce((s,d)=>s+d.gp,0);
   const planVal = D.pipeline.filter(d=>d.status==='Planning').reduce((s,d)=>s+d.budget,0);
   const planGp = D.pipeline.filter(d=>d.status==='Planning').reduce((s,d)=>s+d.gp,0);
-  const totalRev = realRev + waitVal*waitC + planVal*planC + newPipe;
+  const collectable = D.ar_records.filter(d=>['Doing','Done','CARRYOVER'].includes(d.pipeline_status));
+  const totalAR = collectable.reduce((s,d)=>s+d.ar_pending,0);
+  const cashIn = collectable.reduce((s,d)=>s+d.cash_in,0);
+  const cashOut = collectable.reduce((s,d)=>s+d.cash_out,0);
+  const cashOnHand = cashIn - cashOut;
+  
+  // Revenue
+  const newFromWait = waitVal * waitC;
+  const newFromPlan = planVal * planC;
+  const totalRev = realRev + newFromWait + newFromPlan + newPipe;
+  
+  // GP
   const totalGp = (realGp + waitGp*waitC + planGp*planC + newPipe*0.22) * gpMul;
-  return {rev:totalRev, gp:totalGp, margin:totalGp/totalRev, net: totalGp - fc};
+  const margin = totalGp / totalRev;
+  
+  // Costs
+  const netIncome = totalGp - fc;
+  
+  // Cash position at end-of-year
+  const collectedAR = totalAR * arCollect;
+  const projectedCashEOY = cashOnHand + collectedAR + (newFromWait + newFromPlan + newPipe) * 0.7 - fc;
+  
+  // Break-even revenue
+  const breakEvenRev = fc / margin;
+  const revenueGap = totalRev - breakEvenRev;
+  
+  // Runway
+  const monthlyCost = fc/12;
+  const runway = projectedCashEOY > 0 ? projectedCashEOY / monthlyCost : 0;
+  
+  // # Deals projected
+  const realDeals = activeOnly(D.pipeline).length;
+  const waitDeals = D.pipeline.filter(d=>d.status==='Wait').length;
+  const planDeals = D.pipeline.filter(d=>d.status==='Planning').length;
+  const newDeals = Math.round(newPipe / 600000); // assume ~600K per new deal
+  const projectedDeals = realDeals + Math.round(waitDeals*waitC) + Math.round(planDeals*planC) + newDeals;
+  
+  return {
+    rev: totalRev, gp: totalGp, margin, fc, net: netIncome,
+    cashIn, collectedAR, projectedCashEOY, breakEvenRev, revenueGap, runway,
+    projectedDeals, newFromWait, newFromPlan, newPipe, realRev,
+    waitC, planC, gpMul, arCollect
+  };
 }
 
 function updateScenarios(){
@@ -2430,26 +2567,304 @@ function updateScenarios(){
   
   document.getElementById('slider-wait-val').textContent = (wait*100).toFixed(0)+'%';
   document.getElementById('slider-plan-val').textContent = (plan*100).toFixed(0)+'%';
-  document.getElementById('slider-new-val').textContent = newPipe/1e6+'M';
+  document.getElementById('slider-new-val').textContent = (newPipe/1e6).toFixed(1)+'M';
   document.getElementById('slider-gp-val').textContent = gpMul.toFixed(2)+'x';
   
-  const best = calcScenario(0.75, 0.6, 8000000, 1.18, fc);
-  const live = calcScenario(wait, plan, newPipe, gpMul, fc);
-  const worst = calcScenario(0.15, 0.1, 1000000, 0.82, fc*1.05);
+  // 3 scenarios with full assumption sets
+  const best = calcScenario(0.75, 0.60, 8000000, 1.18, fc, 0.80);
+  const live = calcScenario(wait, plan, newPipe, gpMul, fc, 0.50);
+  const worst = calcScenario(0.15, 0.10, 1000000, 0.82, fc*1.05, 0.25);
   
-  document.getElementById('best-rev').textContent = fmt(best.rev);
-  document.getElementById('base-rev').textContent = fmt(live.rev);
-  document.getElementById('worst-rev').textContent = fmt(worst.rev);
-  
-  document.getElementById('best-detail').innerHTML = `GP: <strong>${fmt(best.gp)}</strong> @ ${(best.margin*100).toFixed(1)}%<br>Net: <strong style="color:${COLORS.green}">+${fmt(best.net)}</strong>`;
-  document.getElementById('base-sub').textContent = `Wait ${(wait*100).toFixed(0)}% · Plan ${(plan*100).toFixed(0)}% · New ${(newPipe/1e6).toFixed(1)}M · GP ${gpMul.toFixed(2)}x`;
-  document.getElementById('base-detail').innerHTML = `GP: <strong>${fmt(live.gp)}</strong> @ ${(live.margin*100).toFixed(1)}%<br>Net: <strong style="color:${live.net>=0?COLORS.green:COLORS.red}">${live.net>=0?'+':''}${fmt(live.net)}</strong>`;
-  document.getElementById('worst-detail').innerHTML = `GP: <strong>${fmt(worst.gp)}</strong> @ ${(worst.margin*100).toFixed(1)}%<br>Net: <strong style="color:${worst.net>=0?COLORS.green:COLORS.red}">${fmt(worst.net)}</strong>`;
+  renderScenarioCards(best, live, worst);
+  renderCompareTable(best, live, worst);
+  renderSolutionMatrix(best, live, worst);
+  renderRiskHeatmap(best, live, worst);
+  renderCEOBets(best, live, worst);
   
   document.getElementById('analysis-bottom-line').innerHTML = 
-    `ที่ scenario ปัจจุบัน Net Income <em>${live.net>=0?'+':''}${fmt(live.net)}</em> · เลื่อน slider เพื่อดู sensitivity · ตัวแปรสำคัญสุด: <em>การเก็บเงิน + คุณภาพลีด</em>`;
+    `Your Case · Net Income <em style="color:${live.net>=0?COLORS.green:COLORS.red}">${live.net>=0?'+':''}${fmt(live.net)}</em> · Runway <em>${live.runway.toFixed(1)} เดือน</em> · Break-even Revenue: <em>${fmt(live.breakEvenRev)}</em> · Gap: <em style="color:${live.revenueGap>=0?COLORS.green:COLORS.red}">${live.revenueGap>=0?'+':''}${fmt(live.revenueGap)}</em>`;
   
   renderCashflowChart(live, fc);
+}
+
+function renderScenarioCards(best, live, worst){
+  const cards = [
+    {data: best, type:'best', label:'◇ BEST CASE · UPSIDE', name:'ทุกอย่างเข้าทาง', prob:'P ~15%',
+     assumptions:['Wait → Won <strong>75%</strong>','Planning → Won <strong>60%</strong>','New Pipe Q3-Q4 <strong>8M</strong>','GP Uplift <strong>+18%</strong>','AR Collection <strong>80%</strong>'],
+     actions:['Aggressive sale follow-up','Pricing discipline GP ≥ 20%','Q3 outbound campaign','Premium client targeting']},
+    {data: live, type:'base', label:'◆ YOUR CASE · LIVE', name:'สมมติฐานที่คุณตั้งเอง', prob:'EDITABLE',
+     assumptions:[`Wait → Won <strong>${(live.waitC*100).toFixed(0)}%</strong>`,`Planning → Won <strong>${(live.planC*100).toFixed(0)}%</strong>`,`New Pipe <strong>${(live.newPipe/1e6).toFixed(1)}M</strong>`,`GP Uplift <strong>${live.gpMul.toFixed(2)}x</strong>`,'AR Collection <strong>50%</strong>'],
+     actions:['↑ เลื่อน slider ด้านบนเพื่อเปลี่ยนสมมติฐาน','ตัวเลขในการ์ดนี้อัพเดททันที','เทียบกับ Best ซ้าย · Worst ขวา','ดู cashflow chart ด้านล่าง']},
+    {data: worst, type:'worst', label:'◈ WORST CASE · DOWNSIDE', name:'ปัจจัยลบหมด', prob:'P ~20%',
+     assumptions:['Wait → Won <strong>15%</strong>','Planning → Won <strong>10%</strong>','New Pipe Q3-Q4 <strong>1M</strong>','GP Compression <strong>-18%</strong>','AR Collection <strong>25%</strong>','Fixed Cost <strong>+5%</strong>'],
+     actions:['เก็บ AR เร่งด่วน','ลด overhead non-essential','Hiring freeze','Renegotiate vendor terms']}
+  ];
+  
+  const html = cards.map(c=>{
+    const d = c.data;
+    const netColor = d.net >= 0 ? 'green' : 'red';
+    return `
+      <div class="scenario scenario-${c.type}">
+        <div class="scenario-head">
+          <div class="scenario-label">${c.label}</div>
+          <div class="scenario-name">${c.name}</div>
+          <span class="scenario-prob">${c.prob}</span>
+        </div>
+        <div class="scenario-body">
+          <div class="scenario-value-label">Total Revenue</div>
+          <div class="scenario-value">${fmt(d.rev)}</div>
+          
+          <div class="scenario-metrics">
+            <div class="scenario-metric">
+              <div class="scenario-metric-label">Gross Profit</div>
+              <div class="scenario-metric-value">${fmt(d.gp)}</div>
+            </div>
+            <div class="scenario-metric">
+              <div class="scenario-metric-label">GP Margin</div>
+              <div class="scenario-metric-value gold">${(d.margin*100).toFixed(1)}%</div>
+            </div>
+            <div class="scenario-metric">
+              <div class="scenario-metric-label">Net Income</div>
+              <div class="scenario-metric-value ${netColor}">${d.net>=0?'+':''}${fmt(d.net)}</div>
+            </div>
+            <div class="scenario-metric">
+              <div class="scenario-metric-label">Cash EOY</div>
+              <div class="scenario-metric-value ${d.projectedCashEOY>=0?'green':'red'}">${fmt(d.projectedCashEOY)}</div>
+            </div>
+            <div class="scenario-metric">
+              <div class="scenario-metric-label">Runway</div>
+              <div class="scenario-metric-value">${d.runway.toFixed(1)} mo.</div>
+            </div>
+            <div class="scenario-metric">
+              <div class="scenario-metric-label">Total Deals</div>
+              <div class="scenario-metric-value">${d.projectedDeals}</div>
+            </div>
+          </div>
+          
+          <div class="scenario-assumptions">
+            <span class="scenario-assumptions-title">▸ Assumptions</span>
+            ${c.assumptions.join(' · ')}
+          </div>
+          
+          <div class="scenario-actions">
+            <div class="scenario-actions-title">Key Actions</div>
+            <ul>${c.actions.map(a=>`<li>${a}</li>`).join('')}</ul>
+          </div>
+        </div>
+      </div>
+    `;
+  }).join('');
+  
+  document.getElementById('scenario-cards').innerHTML = html;
+}
+
+function renderCompareTable(best, live, worst){
+  const rows = [
+    {label:'Total Revenue', desc:'รายได้รวมทั้งปี', best:fmt(best.rev), live:fmt(live.rev), worst:fmt(worst.rev), type:'num'},
+    {label:'  ของเดิม Doing+Done', desc:'real rev (locked)', best:fmt(best.realRev), live:fmt(live.realRev), worst:fmt(worst.realRev), type:'sub'},
+    {label:'  + จาก Wait', desc:'wait conversion', best:fmt(best.newFromWait), live:fmt(live.newFromWait), worst:fmt(worst.newFromWait), type:'sub'},
+    {label:'  + จาก Planning', desc:'plan conversion', best:fmt(best.newFromPlan), live:fmt(live.newFromPlan), worst:fmt(worst.newFromPlan), type:'sub'},
+    {label:'  + New Pipeline', desc:'Q3-Q4 hunt', best:fmt(best.newPipe), live:fmt(live.newPipe), worst:fmt(worst.newPipe), type:'sub'},
+    {label:'Gross Profit', desc:'หลังหัก direct cost', best:fmt(best.gp), live:fmt(live.gp), worst:fmt(worst.gp), type:'num'},
+    {label:'GP Margin %', desc:'GP ÷ Revenue', best:(best.margin*100).toFixed(1)+'%', live:(live.margin*100).toFixed(1)+'%', worst:(worst.margin*100).toFixed(1)+'%', type:'num'},
+    {label:'Fixed Cost', desc:'ค่าใช้จ่ายประจำ', best:fmt(best.fc), live:fmt(live.fc), worst:fmt(worst.fc), type:'num'},
+    {label:'NET INCOME', desc:'GP − Fixed Cost', best:(best.net>=0?'+':'')+fmt(best.net), live:(live.net>=0?'+':'')+fmt(live.net), worst:(worst.net>=0?'+':'')+fmt(worst.net), type:'net'},
+    {label:'AR Collected', desc:'AR × collection rate', best:fmt(best.collectedAR), live:fmt(live.collectedAR), worst:fmt(worst.collectedAR), type:'num'},
+    {label:'Cash EOY', desc:'เงินสดสิ้นปี (projection)', best:fmt(best.projectedCashEOY), live:fmt(live.projectedCashEOY), worst:fmt(worst.projectedCashEOY), type:'num'},
+    {label:'Runway', desc:'Cash ÷ Monthly Burn', best:best.runway.toFixed(1)+' mo.', live:live.runway.toFixed(1)+' mo.', worst:worst.runway.toFixed(1)+' mo.', type:'num'},
+    {label:'Break-even Revenue', desc:'รายได้ขั้นต่ำให้ Net = 0', best:fmt(best.breakEvenRev), live:fmt(live.breakEvenRev), worst:fmt(worst.breakEvenRev), type:'num'},
+    {label:'Revenue Gap', desc:'Revenue − Break-even', best:(best.revenueGap>=0?'+':'')+fmt(best.revenueGap), live:(live.revenueGap>=0?'+':'')+fmt(live.revenueGap), worst:(worst.revenueGap>=0?'+':'')+fmt(worst.revenueGap), type:'num'},
+    {label:'Projected Deals', desc:'จำนวนดีลทั้งปี', best:best.projectedDeals, live:live.projectedDeals, worst:worst.projectedDeals, type:'num'},
+  ];
+  
+  let html = `<thead><tr>
+    <th style="min-width:200px">Metric</th>
+    <th style="min-width:140px">Description</th>
+    <th class="col-best">◇ Best</th>
+    <th class="col-base">◆ Your Case</th>
+    <th class="col-worst">◈ Worst</th>
+    <th>Δ Best vs Worst</th>
+  </tr></thead><tbody>`;
+  
+  rows.forEach(r=>{
+    const rowClass = r.type==='net' ? 'row-net' : (r.type==='sub' ? 'row-sub' : '');
+    // Calc delta in raw numbers for non-pct
+    let delta = '';
+    if(r.type === 'num' && typeof r.best === 'string' && r.best.includes(' ')) {
+      // runway
+      const bn = parseFloat(r.best);
+      const wn = parseFloat(r.worst);
+      delta = '<span style="color:'+(bn-wn>=0?COLORS.green:COLORS.red)+';font-weight:900">'+(bn-wn>=0?'+':'')+(bn-wn).toFixed(1)+' mo.</span>';
+    } else if(typeof r.best === 'string' && r.best.includes('%')) {
+      const bn = parseFloat(r.best);
+      const wn = parseFloat(r.worst);
+      delta = '<span style="color:'+(bn-wn>=0?COLORS.green:COLORS.red)+';font-weight:900">'+(bn-wn>=0?'+':'')+(bn-wn).toFixed(1)+'pp</span>';
+    } else if(typeof r.best === 'number') {
+      const d = r.best - r.worst;
+      delta = '<span style="color:'+(d>=0?COLORS.green:COLORS.red)+';font-weight:900">'+(d>=0?'+':'')+d+'</span>';
+    } else {
+      // currency
+      const bn = parseFloat(String(r.best).replace(/[,KMB+]/g,''));
+      // use the actual data instead via lookup
+      const map = {'Total Revenue': best.rev-worst.rev, 'Gross Profit': best.gp-worst.gp, 'Fixed Cost': best.fc-worst.fc, 'NET INCOME': best.net-worst.net, 'AR Collected': best.collectedAR-worst.collectedAR, 'Cash EOY': best.projectedCashEOY-worst.projectedCashEOY, 'Break-even Revenue': best.breakEvenRev-worst.breakEvenRev, 'Revenue Gap': best.revenueGap-worst.revenueGap};
+      const k = r.label.trim();
+      if(map[k] !== undefined){
+        const d = map[k];
+        delta = '<span style="color:'+(d>=0?COLORS.green:COLORS.red)+';font-weight:900">'+(d>=0?'+':'')+fmt(d)+'</span>';
+      }
+    }
+    
+    html += `<tr class="${rowClass}">
+      <td class="metric-label">${r.label}</td>
+      <td class="metric-desc">${r.desc}</td>
+      <td class="num-best" style="text-align:right">${r.best}</td>
+      <td class="num-base" style="text-align:right">${r.live}</td>
+      <td class="num-worst" style="text-align:right">${r.worst}</td>
+      <td style="text-align:right">${delta}</td>
+    </tr>`;
+  });
+  
+  html += '</tbody>';
+  document.getElementById('compare-table').innerHTML = html;
+}
+
+function renderSolutionMatrix(best, live, worst){
+  const fc = best.fc;
+  const arRecords = D.ar_records.filter(d=>['Doing','Done','CARRYOVER'].includes(d.pipeline_status));
+  const totalAR = arRecords.reduce((s,d)=>s+d.ar_pending,0);
+  
+  const solutions = [
+    {
+      type:'hit-best', title:'How to Hit Best Case', sub:'unlock upside · +' + fmt(best.net - live.net),
+      actions:[
+        {text:'<strong>AR Collection War Room</strong> — เก็บ AR <strong>'+fmt(totalAR*0.3)+'</strong> ภายใน 60 วัน · ตั้งเป้า 80% collection rate', impact:'+'+fmt(totalAR*0.3)+' cash'},
+        {text:'<strong>Wait Pipeline Push</strong> — Sale follow-up รายดีล · ปิด <strong>75%</strong> ของ Wait status (vs '+(live.waitC*100).toFixed(0)+'% ตอนนี้)', impact:'+'+fmt((best.newFromWait-live.newFromWait))},
+        {text:'<strong>Pricing Discipline</strong> — ปฏิเสธดีล GP &lt; 20% · เน้น premium client · GP Uplift <strong>+18%</strong>', impact:'+18% margin'},
+        {text:'<strong>Q3-Q4 Outbound</strong> — seed pipeline ใหม่ <strong>8M</strong> · ทีม Sale tele-canvass + referral incentive', impact:'+8M revenue'}
+      ]
+    },
+    {
+      type:'improve-live', title:'How to Improve Your Case', sub:'tactical moves · short-term',
+      actions:[
+        {text:'<strong>Multi-role Workload Redistribution</strong> — GOLF, FILM กำลังแบก 2 roles · จัดสรรใหม่ก่อน burn-out', impact:'risk mitigation'},
+        {text:'<strong>TOON Recovery Plan</strong> — Top loser (16.6M เสียไป) · ติด coaching + structured pitch process', impact:'+5M next Q'},
+        {text:'<strong>BOW Concentration De-risk</strong> — BOW เป็น Bus Factor = 1 · เริ่ม shadow assignment ให้ AE, NESS', impact:'continuity'},
+        {text:'<strong>Bi-weekly Status Review</strong> — Stale pipeline ≥ 30 วัน auto-flag · clear Hold/Wait ค้าง', impact:'+'+fmt(live.rev*0.05)}
+      ]
+    },
+    {
+      type:'avoid-worst', title:'How to Avoid Worst Case', sub:'risk mitigation · ' + fmt(live.net - worst.net) + ' at risk',
+      actions:[
+        {text:'<strong>Cost Hedging</strong> — Freeze hire ที่ไม่ใช่ revenue-generating · ลด overhead non-essential <strong>~5%</strong>', impact:'-360K cost'},
+        {text:'<strong>AR Aging Audit</strong> — ดีลค้างเกิน 90 วัน → legal escalation · 60-day → CEO call ลูกค้าเอง', impact:'avoid -'+fmt(totalAR*0.5)},
+        {text:'<strong>Vendor Renegotiation</strong> — Top 5 vendors · ขอ payment terms 60→90 วัน · cashflow buffer', impact:'cash extension'},
+        {text:'<strong>Channel Audit</strong> — Audit TPS channel (high lost rate) · pause low-quality lead sources', impact:'avoid -2M waste'}
+      ]
+    }
+  ];
+  
+  const html = solutions.map(s=>`
+    <div class="solution-card">
+      <div class="solution-head ${s.type}">
+        <div class="solution-title">${s.title}</div>
+        <div class="solution-sub">${s.sub}</div>
+      </div>
+      <div class="solution-body">
+        ${s.actions.map((a,i)=>`
+          <div class="solution-action">
+            <div class="solution-action-num">${String(i+1).padStart(2,'0')}</div>
+            <div class="solution-action-text">${a.text}<br><span class="solution-action-impact">▸ Impact: ${a.impact}</span></div>
+          </div>
+        `).join('')}
+      </div>
+    </div>
+  `).join('');
+  
+  document.getElementById('solution-grid').innerHTML = html;
+}
+
+function renderRiskHeatmap(best, live, worst){
+  // 5 risk factors with probability × impact
+  const risks = [
+    {factor:'AR Collection Failure', desc:'ลูกค้าไม่จ่าย / เลื่อนนาน', prob:'HIGH', impact:'CRITICAL', heat:'h-crit',
+     value:'-'+fmt((best.collectedAR-worst.collectedAR)*0.6), mitigation:'War room + escalation tier'},
+    {factor:'Wait Pipeline Drop-off', desc:'ลูกค้าค้างไม่ปิด', prob:'MEDIUM', impact:'HIGH', heat:'h-high',
+     value:'-'+fmt(best.newFromWait-worst.newFromWait), mitigation:'Sale follow-up SLA 7 วัน'},
+    {factor:'Key Person Risk · BOW', desc:'BOW = Planner หลัก 52 ดีล', prob:'LOW', impact:'CRITICAL', heat:'h-high',
+     value:'-'+fmt(best.realRev*0.6), mitigation:'Cross-training + shadow AE'},
+    {factor:'GP Margin Compression', desc:'Pricing pressure · ลด GP', prob:'MEDIUM', impact:'MEDIUM', heat:'h-med',
+     value:'-'+fmt(live.gp*0.18), mitigation:'Pricing committee · GP floor 20%'},
+    {factor:'New Pipeline Drought', desc:'Q3-Q4 ไม่มีลูกค้าใหม่', prob:'HIGH', impact:'HIGH', heat:'h-high',
+     value:'-'+fmt(best.newPipe-worst.newPipe), mitigation:'Outbound campaign Q2 start'}
+  ];
+  
+  let html = `
+    <div class="risk-cell header">Risk Factor</div>
+    <div class="risk-cell header">Probability</div>
+    <div class="risk-cell header">Impact ($)</div>
+    <div class="risk-cell header">Mitigation Plan</div>
+  `;
+  
+  risks.forEach(r=>{
+    const probHeat = r.prob==='HIGH'?'h-crit':(r.prob==='MEDIUM'?'h-med':'h-low');
+    html += `
+      <div class="risk-cell factor">
+        <div class="risk-cell-value">${r.factor}</div>
+        <div class="risk-cell-detail">${r.desc}</div>
+      </div>
+      <div class="risk-cell ${probHeat}">
+        <div class="risk-cell-value">${r.prob}</div>
+        <div class="risk-cell-detail">probability</div>
+      </div>
+      <div class="risk-cell ${r.heat}">
+        <div class="risk-cell-value">${r.value}</div>
+        <div class="risk-cell-detail">${r.impact} impact</div>
+      </div>
+      <div class="risk-cell">
+        <div class="risk-cell-value" style="color:${COLORS.burgundy};font-size:12px">${r.mitigation}</div>
+        <div class="risk-cell-detail">strategic action</div>
+      </div>
+    `;
+  });
+  
+  document.getElementById('risk-grid').innerHTML = html;
+}
+
+function renderCEOBets(best, live, worst){
+  const arRecords = D.ar_records.filter(d=>['Doing','Done','CARRYOVER'].includes(d.pipeline_status));
+  const totalAR = arRecords.reduce((s,d)=>s+d.ar_pending,0);
+  
+  const bets = [
+    {
+      num:'BET 01 · CASH', title:'AR Collection War Room',
+      desc:'เก็บ AR ค้างเก็บ <strong>'+fmt(totalAR)+'</strong> ให้ได้ 50%+ ภายใน Q2 · runway +14 เดือน',
+      metric:'Cash Impact', value:'+'+fmt(totalAR*0.5)
+    },
+    {
+      num:'BET 02 · QUALITY', title:'Sale Process Reform',
+      desc:'ปฏิเสธดีล GP &lt; 20% · structured pitch · TOON coaching · ลด Fail rate จาก 22% → 12%',
+      metric:'GP Impact', value:'+'+fmt(live.gp*0.15)
+    },
+    {
+      num:'BET 03 · GROWTH', title:'Q3-Q4 Outbound Engine',
+      desc:'seed 8M new pipeline · เปิด channel ใหม่ · referral incentive · target 12-15 ดีลใหม่',
+      metric:'Revenue Impact', value:'+'+fmt(8000000)
+    }
+  ];
+  
+  const html = bets.map(b=>`
+    <div class="ceo-bet">
+      <div class="ceo-bet-num">${b.num}</div>
+      <div class="ceo-bet-title">${b.title}</div>
+      <div class="ceo-bet-desc">${b.desc}</div>
+      <div class="ceo-bet-metric">
+        <span>${b.metric}</span>
+        <strong>${b.value}</strong>
+      </div>
+    </div>
+  `).join('');
+  
+  document.getElementById('ceo-bets').innerHTML = html;
 }
 
 function renderCashflowChart(live, fc){
